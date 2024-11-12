@@ -20,5 +20,4 @@ Jawaban Soal
 
 2. 
 3. Keyword instanceof dalam Java digunakan untuk memeriksa apakah suatu objek adalah instance (contoh) dari kelas tertentu atau implementasi dari interface tertentu.
-4. Heterogeneous collection merujuk pada kumpulan atau koleksi data yang dapat menyimpan objek dari berbagai tipe yang berbeda. Dengan kata lain, dalam koleksi yang heterogen, elemen-elemennya tidak harus memiliki tipe yang sama, dan bisa mencakup berbagai kelas atau objek yang tidak terkait satu sama lain.
->>>>>>> b8d1c6ec33dac8782c896f136a9dbd838a3bed34
+4.Heterogeneous collection adalah kumpulan data atau objek yang bisa berisi berbagai jenis data atau objek dari kelas yang berbeda. Dengan kata lain, dalam satu koleksi, kita bisa menyimpan objek yang berasal dari tipe data atau kelas yang berbeda-beda.
