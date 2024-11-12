@@ -11,7 +11,7 @@ Pegawai pegawai1 = (Pegawai) new Dosen();
 -> kode berikut eksplisit, tetapi tidak diperlukan.
 
 3.	Apa fungsi dari keyword instanceOf?
-4.	Apa yang dimaksud heterogenous collection?
+4.	Apa yang dimaksud heterogenous collection? Heterogeneous collection adalah kumpulan data atau objek yang bisa berisi berbagai jenis data atau objek dari kelas yang berbeda. Dengan kata lain, dalam satu koleksi, kita bisa menyimpan objek yang berasal dari tipe data atau kelas yang berbeda-beda.
 5.	Sebuah object diinstansiasi dari class Pegawai. Kemudian dilakukan downcasting menjadi object bertipe Dosen. Apakah hal ini dapat dilakukan? Lakukan percobaan untuk membuktikannya.
 =======
 Jawaban Soal
@@ -20,4 +20,4 @@ Jawaban Soal
 
 2. 
 3. Keyword instanceof dalam Java digunakan untuk memeriksa apakah suatu objek adalah instance (contoh) dari kelas tertentu atau implementasi dari interface tertentu.
-4.Heterogeneous collection adalah kumpulan data atau objek yang bisa berisi berbagai jenis data atau objek dari kelas yang berbeda. Dengan kata lain, dalam satu koleksi, kita bisa menyimpan objek yang berasal dari tipe data atau kelas yang berbeda-beda.
+  
