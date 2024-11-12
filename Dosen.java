@@ -21,3 +21,5 @@ public class Dosen extends Pegawai {
         System.out.println("Melakukan evaluasi");
     }
 }
+
+
