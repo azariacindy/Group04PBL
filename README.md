@@ -18,6 +18,10 @@ Jawaban Soal
 
 1. Upcasting tidak dapat dilakukan antara dua kelas yang tidak memiliki relasi inheritance (pewarisan). Upcasting hanya dapat dilakukan jika kelas yang ingin di-cast memiliki hubungan inheritance dengan kelas yang menjadi target casting. Dalam konsep pewarisan, upcasting adalah proses mengubah objek yang bertipe subclass (kelas turunan) menjadi tipe superclass (kelas induk)
 
-2. 
+2. - Pegawai pegawai1 = new Dosen();
+Ini adalah contoh upcasting implisit yang tepat. Di sini, objek Dosen secara otomatis di-cast (dikonversi) ke tipe superclass-nya, yaitu Pegawai. Upcasting memungkinkan objek subclass (Dosen) diperlakukan sebagai objek superclass (Pegawai). Upcasting ini bersifat otomatis dan tidak memerlukan casting secara eksplisit (tidak memerlukan tanda kurung atau (Pegawai)), sehingga kode ini lebih sederhana.
+
+   - Pegawai pegawai1 = (Pegawai) new Dosen();
+Baris ini juga melakukan upcasting, tetapi dengan cara eksplisit karena terdapat (Pegawai). Casting eksplisit ini sebenarnya tidak diperlukan dalam upcasting, karena compiler Java sudah otomatis melakukan casting ke superclass ketika objek subclass (Dosen) diberikan ke variabel bertipe superclass (Pegawai).
 3. Keyword instanceof dalam Java digunakan untuk memeriksa apakah suatu objek adalah instance (contoh) dari kelas tertentu atau implementasi dari interface tertentu.
   
