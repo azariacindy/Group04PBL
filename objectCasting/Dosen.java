@@ -1,8 +1,10 @@
+package objectCasting;
+
 public class Dosen extends Pegawai {
+
     public String nidn;
 
-    public Dosen() {
-    }
+    public Dosen() {}
 
     public Dosen(String nip, String nama, String nidn) {
         super(nip, nama);
