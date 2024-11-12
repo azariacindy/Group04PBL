@@ -1,6 +1,7 @@
 # Group04PBL
 1.	Apakah upcasting dapat dilakukan dari suatu class terhadap class lain yang tidak memiliki relasi inheritance?
 -> tidak, karena upcatsing hanya bisa dilakukan pada class yang memiliki hubungan inheritance. Upcasting berarti melihat objek dari subkelas sebagai objek dari superclass-nya, maka Upcasting adalah mustahil untuk mengalami karena mereka tidak memiliki tipe yang sama dalam hierarki pewarisan.
+
 2.	Dari 2 baris kode program berikut, manakan proses upcasting yang tepat? Jelaskan!
 Pegawai pegawai1 = new Dosen();
 -> objek Dosen secara otomatis di-cast ke tipe Pegawai karena Dosen adalah subclass dari Pegawai. Upcasting ini tidak memerlukan cast eksplisit ( '(Pegawai)' ), karena Java secara otomatis memahami bahwa Dosen adalah tipe Pegawai.
