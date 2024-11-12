@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class Demo {
+public class DemoMain {
     public static void main(String[] args) {
         // Membuat objek Dosen
         Dosen dosen1 = new Dosen("19940201", "Widia, S.Kom. M.Kom", "199402");
