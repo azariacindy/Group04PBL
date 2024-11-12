@@ -10,8 +10,5 @@ public class Pegawai {
         this.nama = nama;
     }
 
-    public void displayInfo() {
-        System.out.println("NIP: " + nip);
-        System.out.println("Nama: " + nama);
-    }
+   
 }

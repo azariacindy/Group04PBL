@@ -9,8 +9,5 @@ public class TenagaKependidikan extends Pegawai {
         this.kategori = kategori;
     }
 
-    public void displayInfo() {
-        super.displayInfo();
-        System.out.println("Kategori: " + kategori);
-    }
+   
 }

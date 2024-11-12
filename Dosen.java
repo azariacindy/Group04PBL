@@ -14,10 +14,5 @@ public class Dosen extends Pegawai {
         System.out.println("NIDN: " + nidn);
     }
 
-    public void mengajar() {
-        System.out.println("Membuat rencana pembelajaran");
-        System.out.println("Menyusun materi");
-        System.out.println("Melaksanakan PBM");
-        System.out.println("Melakukan evaluasi");
-    }
+   
 }
