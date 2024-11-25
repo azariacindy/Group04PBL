@@ -24,4 +24,3 @@ Ini adalah contoh upcasting implisit yang tepat. Di sini, objek Dosen secara oto
    - Pegawai pegawai1 = (Pegawai) new Dosen();
 Baris ini juga melakukan upcasting, tetapi dengan cara eksplisit karena terdapat (Pegawai). Casting eksplisit ini sebenarnya tidak diperlukan dalam upcasting, karena compiler Java sudah otomatis melakukan casting ke superclass ketika objek subclass (Dosen) diberikan ke variabel bertipe superclass (Pegawai).
 3. Keyword instanceof dalam Java digunakan untuk memeriksa apakah suatu objek adalah instance (contoh) dari kelas tertentu atau implementasi dari interface tertentu.
-  
