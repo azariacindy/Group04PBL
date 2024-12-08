@@ -26,7 +26,7 @@
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             <!-- Dashboard -->
             <li class="nav-item">
-                <a href="index.php" class="nav-link">
+                <a href="index.php?page=dashboard" class="nav-link">
                     <i class="nav-icon fas fa-tachometer-alt"></i>
                     <p>Dashboard</p>
                 </a>

@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 include('../lib/Session.php');
 include('../lib/Connection.php');
 
@@ -10,28 +14,36 @@ if ($act == 'login') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Query untuk mendapatkan data user
-    $query = $db->prepare('SELECT * FROM m_user WHERE username = ?');
+    // Prepare query
+    $query = $db->prepare('SELECT * FROM users WHERE username = ?');
+    if (!$query) {
+        die("Prepare failed: (" . $db->errno . ") " . $db->error);
+    }
+
     $query->bind_param('s', $username);
-    $query->execute();
 
-    // Ambil hasil query
-    $data = $query->get_result()->fetch_assoc();
+    // Execute query
+    if ($query->execute()) {
+        $result = $query->get_result();
+        $data = $result->fetch_assoc();
 
-    // Cek kecocokan password
-    if (password_verify($password, $data['password'])) {
-        $session->set('is_login', true);
-        $session->set('username', $data['username']);
-        $session->set('name', $data['nama']);
-        $session->set('level', $data['level']);
-        $session->commit();
+        // Verify password
+        if ($data && password_verify($password, $data['password'])) {
+            $session->set('is_login', true);
+            $session->set('username', $data['username']);
+            $session->set('name', $data['nama']);
+            $session->set('level', $data['role']);
+            $session->commit();
 
-        header('Location: ../index.php', false);
+            header('Location: ../index.php', false);
+        } else {
+            $session->setFlash('status', false);
+            $session->setFlash('message', 'Username dan password salah.');
+            $session->commit();
+            header('Location: ../login.php', false);
+        }
     } else {
-        $session->setFlash('status', false);
-        $session->setFlash('message', 'Username dan password salah.');
-        $session->commit();
-        header('Location: ../login.php', false);
+        die("Query execution failed: (" . $query->errno . ") " . $query->error);
     }
 } else if ($act == 'logout') {
     $session->deleteAll();

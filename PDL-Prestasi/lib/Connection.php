@@ -1,7 +1,7 @@
 <?php
 $username = 'root';
 $password = '';
-$database = 'dasar_web';
+$database = 'pbl_presma';
 
 try{
 $db = new mysqli('localhost', $username, $password, $database); if($db->connect_error){
