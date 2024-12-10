@@ -42,7 +42,7 @@ if ($session->get('is_login') === true) {
             label="Close"><span aria-hidden="true">&times;</span></div>';
         }
         ?>
-        <form action="auth.php?act=login" method="post" id="form-login">
+        <form action="../ProjectAkhir/action/auth.php?act=login" method="post" id="form-login">
           <div class="input-group mb-3">
             <input type="text" class="form-control" name="username" placeholder="Username">
             <div class="input-group-append">

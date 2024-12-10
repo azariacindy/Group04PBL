@@ -9,7 +9,7 @@ class UserModel extends Model
     
     public function __construct()
     {
-        include('lib/Connection.php');
+        include('../lib/Connection.php');
         $this->db = $db;
         $this->driver = $use_driver;
     }
@@ -36,7 +36,6 @@ class UserModel extends Model
                 $data['username'],
                 password_hash($data['password'], PASSWORD_DEFAULT),
                 $data['role']
-                
             ));
         }
     }
