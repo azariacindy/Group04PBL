@@ -37,7 +37,8 @@
                         <th>Detail Lomba</th>
                         <th>Berkas</th>
                         <th>Peringkat</th>
-                        <th>Status</th>
+                        <th>Status Lomba</th>
+                        <th>Status Validasi</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -85,6 +86,14 @@
                         <label>Peringkat</label>
                         <input type="text" class="form-control" name="peringkat" id="peringkat">
                     </div>
+                    <div class="form-group">
+                        <label>Status Lomba</label>
+                        <input type="text" class="form-control" name="status_lomba" id="status_lomba">
+                    </div>
+                    <div class="form-group">
+                        <label>Status Validasi</label>
+                        <input type="text" class="form-control" name="status_validasi" id="status_validasi">
+                    </div>
                 </div>
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
@@ -102,11 +111,13 @@
         $('#id_prestasi').val('');
         $('#nim').val('');
         $('#nip').val('');
-        $('#nama_lomba').val('');
+        $('#id_lomba').val('');
         $('#tanggal').val('');
         $('#detail_lomba').val('');
         $('#berkas').val('');
         $('#peringkat').val('');
+        $('#status_lomba').val('');
+        $('#status_validasi').val('');
     }
 
     function editData(id) {

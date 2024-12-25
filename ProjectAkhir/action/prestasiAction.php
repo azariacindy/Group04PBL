@@ -30,7 +30,8 @@ if ($act == 'load') {
             htmlspecialchars($row['detail_lomba']), // Detail Lomba
             htmlspecialchars($row['berkas']), // Link ke berkas
             htmlspecialchars($row['peringkat']), // Peringkat
-            htmlspecialchars($row['status_lomba']), // Status Lomba
+            htmlspecialchars($row['status_lomba']),
+            htmlspecialchars($row['status_validasi']), // Status Lomba
             '<button class="btn btn-sm btn-warning" onclick="editData(' . htmlspecialchars($row['id_prestasi']) . ')">Edit</button>
              <button class="btn btn-sm btn-danger" onclick="deleteData(' . htmlspecialchars($row['id_prestasi']) . ')">Hapus</button>' // Tombol aksi
         ];

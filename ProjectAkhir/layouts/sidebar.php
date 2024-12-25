@@ -88,7 +88,7 @@ data-accordion="false">
         <li class="nav-item border-item"> 
             <a href="index.php?page=daftarlomba" class="nav-link"> 
                 <i class="nav-icon fas fa-flag"></i> 
-                <p>Tambah Lomba</p> 
+                <p>Pengajuan Lomba</p> 
             </a> 
         </li> 
         <li class="nav-item border-bottom">
@@ -110,4 +110,42 @@ data-accordion="false">
 
 <?php
     }
+    if ($_SESSION['role'] == 'dosen') {
+?>
+    <!-- Sidebar Menu --> 
+    <nav class="mt-2"> 
+    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" 
+data-accordion="false"> 
+        <!-- Add icons to the links using the .nav-icon class 
+            with font-awesome or any other icon font library --> 
+        <li class="nav-item"> 
+            <a href="index.php" class="nav-link"> 
+                <i class="nav-icon fas fa-tachometer-alt"></i> 
+                <p>Dashboard</p> 
+            </a> 
+        </li> 
+        <li class="nav-item border-item"> 
+            <a href="index.php?page=daftarlomba" class="nav-link"> 
+                <i class="nav-icon fas fa-flag"></i> 
+                <p>Pengajuan Lomba</p> 
+            </a> 
+        </li> 
+        <li class="nav-item border-bottom">
+            <a href="index.php?page=input_prestasi" class="nav-link">
+                <i class="nav-icon fas fa-medal"></i>
+                <p>Input Prestasi</p>
+            </a>
+        </li>
+        <li class="nav-item"> 
+            <a href="../ProjectAkhir/action/auth.php?act=logout" class="nav-link"> 
+                <i class="nav-icon fas fa-sign-out-alt"></i> 
+                <p>Logout</p> 
+            </a> 
+        </li> 
+    </ul> 
+    </nav> 
+    <!-- /.sidebar-menu --> 
+</div>
+<?php
+}
 ?>

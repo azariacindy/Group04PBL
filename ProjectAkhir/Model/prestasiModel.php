@@ -34,10 +34,12 @@ class PrestasiModel extends Model
             );
             $query->execute();
         } else {
-            $sql = "INSERT INTO {$this->table} (id_prestasi,nim, nip, id_lomba, tanggal, detail_lomba, berkas, peringkat, status_lomba, status_validasi) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            echo '<pre>'; 
+            var_dump($data);
+            die;
+            $sql = "INSERT INTO {$this->table} (nim, nip, id_lomba, tanggal, detail_lomba, berkas, peringkat, status_lomba, status_validasi) 
+                    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $params = [
-                $data['id_prestasi'],
                 $data['nim'],
                 $data['nip'],
                 $data['id_lomba'],
