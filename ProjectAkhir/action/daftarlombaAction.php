@@ -18,65 +18,68 @@ if ($act == 'load') {
     if ($role == 'admin') {
         $data = $daftarlomba->getData();
     }else{
-        $data = $daftarlomba->getDataById($id_user);
+        $data = $daftarlomba->getDataByIdUser($id_user);
     }
-        $result = [];
-        $i = 1;
+    $result = ['data' => []]; // Default: data kosong
+    $i = 1;
 
-        // Loop untuk memproses setiap data lomba
-        while ($row = sqlsrv_fetch_array($data, SQLSRV_FETCH_ASSOC)) {
-            // Menentukan status lomba berdasarkan status_input_lomba
-            $status_text = '';
-            if ($row['status_input_lomba'] === 'approved') {
-                $status_text = '<span style="color: green;">Disetujui</span>';
-            } elseif ($row['status_input_lomba'] === 'rejected') {
-                $status_text = '<span style="color: red;">Ditolak: ' . '</span>';
-            } else {
-                $status_text = '<span style="color: orange;">Menunggu Persetujuan</span>';
-            }
-
-            // Tombol aksi untuk edit dan hapus
-            $action_buttons = '
-            <button class="btn btn-sm btn-warning" onclick="editData(' . htmlspecialchars(json_encode($row['id_lomba'])) . ')">
-                <i class="fa fa-edit"></i> Edit
-            </button>
-            <button class="btn btn-sm btn-danger" onclick="deleteData(' . htmlspecialchars(json_encode($row['id_lomba'])) . ')">
-                <i class="fa fa-trash"></i> Hapus
-            </button>';
-
-            // Tombol untuk mengubah status jika user adalah admin
-            if ($role == 'admin') {
-                $status_buttons = '
-                    <button class="btn btn-sm btn-success" onclick="updateStatus(' . htmlspecialchars(json_encode($row['id_lomba'])) . ', \'approved\')">
-                        <i class="fa fa-check"></i> Disetujui
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="updateStatus(' . htmlspecialchars(json_encode($row['id_lomba'])) . ', \'rejected\')">
-                        <i class="fa fa-times"></i> Ditolak
-                    </button>';
-            } else {
-                $status_buttons = $status_text;
-            }
-
-            // Menambahkan data lomba ke array hasil tanpa menampilkan id_user atau nama_user
-            $result['data'][] = [
-                $i, // Nomor urut
-                htmlspecialchars($row['nama_lomba']),
-                htmlspecialchars($row['id_tingkat']),
-                // Format tanggal 
-                htmlspecialchars($row['tanggal'] instanceof DateTime ? $row['tanggal']->format('d M Y') : $row['tanggal']),
-                htmlspecialchars($row['detail_lomba']),
-                htmlspecialchars($row['gambar']),
-            // Show action buttons
-            $action_buttons,
-            // Show status buttons only for admin
-            $status_buttons,
-            // Menampilkan status lomba
-            $status_text,
-            ];
-            $i++;
+    // Cek apakah ada data yang diambil
+    if ($data !== false) {
+    // Loop untuk memproses setiap data lomba
+    while ($row = sqlsrv_fetch_array($data, SQLSRV_FETCH_ASSOC)) {
+        // Menentukan status lomba berdasarkan status_input_lomba
+        $status_text = '';
+        if ($row['status_input_lomba'] === 'approved') {
+            $status_text = '<span style="color: green;">Disetujui</span>';
+        } elseif ($row['status_input_lomba'] === 'rejected') {
+            $status_text = '<span style="color: red;">Ditolak: ' . '</span>';
+        } else {
+            $status_text = '<span style="color: orange;">Menunggu Persetujuan</span>';
         }
-        echo json_encode($result);
+
+        // Tombol aksi untuk edit dan hapus
+        $action_buttons = '
+          <button class="btn btn-sm btn-warning" onclick="editData(' . htmlspecialchars(json_encode($row['id_lomba'])) . ')">
+              <i class="fa fa-edit"></i> Edit
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="deleteData(' . htmlspecialchars(json_encode($row['id_lomba'])) . ')">
+              <i class="fa fa-trash"></i> Hapus
+          </button>';
+
+        // Tombol untuk mengubah status jika user adalah admin
+        if ($role == 'admin') {
+            $status_buttons = '
+                <button class="btn btn-sm btn-success" onclick="updateStatus(' . htmlspecialchars(json_encode($row['id_lomba'])) . ', \'approved\')">
+                    <i class="fa fa-check"></i> Disetujui
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="updateStatus(' . htmlspecialchars(json_encode($row['id_lomba'])) . ', \'rejected\')">
+                    <i class="fa fa-times"></i> Ditolak
+                </button>';
+        } else {
+            $status_buttons = $status_text;
+        }
+
+        // Menambahkan data lomba ke array hasil tanpa menampilkan id_user atau nama_user
+        $result['data'][] = [
+            $i, // Nomor urut
+            htmlspecialchars($row['nama_lomba']),
+            htmlspecialchars($row['id_tingkat']),
+            // Format tanggal 
+            htmlspecialchars($row['tanggal'] instanceof DateTime ? $row['tanggal']->format('d M Y') : $row['tanggal']),
+            htmlspecialchars($row['detail_lomba']),
+            '<img src="' . htmlspecialchars($row['gambar']) . '" alt="Gambar Lomba" style="max-width: 100px; max-height: 100px;">',
+           // Show action buttons
+           $action_buttons,
+           // Show status buttons only for admin
+           $status_buttons,
+           // Menampilkan status lomba
+           $status_text,
+        ];
+        $i++;
+    }
+    }
     // Outputkan hasil dalam format JSON
+    echo json_encode($result);
     exit();
 }
 
@@ -110,8 +113,7 @@ if ($act == 'save') {
         try {
             $daftarlomba = new daftarlombaModel();
             $daftarlomba->insertData($data);
-            // var_dump($data);
-            // exit;
+
             echo json_encode([
                 'status' => true,
                 'message' => 'Data berhasil disimpan.'
@@ -166,6 +168,30 @@ if ($act == 'delete') {
     ]);
     exit;
 }
+
+// update_status
+if ($act == 'rejected') {
+    $id = (isset($_GET['id']) && ctype_digit($_GET['id'])) ? (int)$_GET['id'] : 0;
+    $status = isset($_GET['status_input_lomba']) ? $_GET['status_input_lomba'] : '';
+    $reason = isset($_POST['reason']) ? antiSqlInjection($_POST['reason']) : '';
+
+    // Validasi alasan penolakan
+    if ($status == 'rejected' && empty($reason)) {
+        echo json_encode(['status' => false, 'message' => 'Alasan penolakan harus diisi jika statusnya ditolak.']);
+        exit;
+    }
+
+    // Memanggil fungsi updateStatus untuk memperbarui status
+    $daftarlomba = new daftarlombaModel();
+    $result = $daftarlomba->updateStatus($id, $status, $reason);
+
+    echo json_encode([
+        'status' => $result,
+        'message' => $result ? 'Status lomba berhasil ditolak' : 'Gagal memperbarui status lomba.'
+    ]);
+    exit;
+}
+
 
 
 if ($act == 'update_status') {
