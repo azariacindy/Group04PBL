@@ -6,6 +6,9 @@ include_once('../lib/Secure.php');
 
 $act = isset($_GET['act']) ? strtolower($_GET['act']) : '';
 
+$role = isset($_SESSION['role']) ? $_SESSION['role'] : '[user]'; // Defaultkan ke 'user' jika role tidak ditemukan
+$nim = isset($_SESSION['nim']) ? (int)$_SESSION['nim'] : 0;
+
 // Konfigurasi direktori untuk upload file
 $uploadDir = '../uploads/'; // Tentukan folder penyimpanan file
 if (!is_dir($uploadDir)) {
@@ -14,13 +17,49 @@ if (!is_dir($uploadDir)) {
 
 if ($act == 'load') {
     $prestasi = new PrestasiModel();
-    $data = $prestasi->getData(); // Mengambil semua data dari database menggunakan model
-
+    if ($role == 'admin') {
+        $data = $prestasi->getData();
+    }else{
+        $data = $prestasi->getDataByIdUser($nim);
+    }
     $result = [];
     $i = 1;
 
+    if ($data !== false) {
     // Proses data untuk ditampilkan
+    
     while ($row = sqlsrv_fetch_array($data, SQLSRV_FETCH_ASSOC)) {
+        $status_text = '';
+        if ($row['status_input_lomba'] === 'approved') {
+            $status_text = '<span style="color: green;">Disetujui</span>';
+        } elseif ($row['status_input_lomba'] === 'rejected') {
+            $status_text = '<span style="color: red;">Ditolak: ' . '</span>';
+        } else {
+            $status_text = '<span style="color: orange;">Menunggu Persetujuan</span>';
+        }
+
+        // Tombol aksi untuk edit dan hapus
+        $action_buttons = '
+          <button class="btn btn-sm btn-warning" onclick="editData(' . htmlspecialchars(json_encode($row['id_lomba'])) . ')">
+              <i class="fa fa-edit"></i> Edit
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="deleteData(' . htmlspecialchars(json_encode($row['id_lomba'])) . ')">
+              <i class="fa fa-trash"></i> Hapus
+          </button>';
+
+          // Tombol untuk mengubah status jika user adalah admin
+        if ($role == 'admin') {
+            $status_buttons = '
+                <button class="btn btn-sm btn-success" onclick="updateStatus(' . htmlspecialchars(json_encode($row['id_lomba'])) . ', \'approved\')">
+                    <i class="fa fa-check"></i> Disetujui
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="updateStatus(' . htmlspecialchars(json_encode($row['id_lomba'])) . ', \'rejected\')">
+                    <i class="fa fa-times"></i> Ditolak
+                </button>';
+        } else {
+            $status_buttons = $status_text;
+        }
+        
         $result['data'][] = [
             $i, // Nomor urut
             htmlspecialchars($row['nim']), // NIM
@@ -37,10 +76,11 @@ if ($act == 'load') {
         ];
         $i++;
     }
-
+    }
     // Output data dalam format JSON
     echo json_encode($result);
     exit;
+    
 }
 
 if ($act == 'save') {

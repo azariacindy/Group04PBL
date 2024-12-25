@@ -37,9 +37,9 @@
                         <th>Detail Lomba</th>
                         <th>Berkas</th>
                         <th>Peringkat</th>
+                        <th>Aksi</th>
                         <th>Status Lomba</th>
                         <th>Status Validasi</th>
-                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>

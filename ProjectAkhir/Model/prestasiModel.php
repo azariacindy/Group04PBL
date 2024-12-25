@@ -34,9 +34,6 @@ class PrestasiModel extends Model
             );
             $query->execute();
         } else {
-            echo '<pre>'; 
-            var_dump($data);
-            die;
             $sql = "INSERT INTO {$this->table} (nim, nip, id_lomba, tanggal, detail_lomba, berkas, peringkat, status_lomba, status_validasi) 
                     VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $params = [
@@ -78,6 +75,18 @@ class PrestasiModel extends Model
             return sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
         }
     }
+
+    public function getDataByIdUser($nim)
+{
+    $sql = "SELECT * FROM {$this->table} WHERE nim = ?";
+    $params = [$nim];
+    $stmt = sqlsrv_query($this->db, $sql, $params);
+
+    if ($stmt === false) {
+        throw new Exception('Error executing query: ' . print_r(sqlsrv_errors(), true));
+    }
+    return $stmt;
+}
 
     public function updateData($id, $data)
     {
