@@ -11,21 +11,23 @@ if ($act == 'login') {
     $user = new UserModel();
     $data = $user->getSingleDataByKeyword('username', $username);
     // jika password sesuai
-    if (password_verify($password, $data['password'])) {
+    if ($data && password_verify($password, $data['password'])) {
         $session->set('is_login', true);
         $session->set('id_user', $data['id_user']);
-        $session->set('username', $data['username']);
+        $session->set('user', $data['username']); 
         $session->set('role', $data['role']);
         $session->commit();
-        header('Location: ../index.php', false);
+        header('Location: ../index.php');
+        exit();
     } else {
         $session->setFlash('status', false);
         $session->setFlash('message', 'Username dan password salah.');
         $session->commit();
-        header('Location: ../login.php', false);
+        header('Location: ../login.php');
+        exit();
     }
-    
 } else if ($act == 'logout') {
     $session->deleteAll();
-    header('Location: ../login.php', false);
+    header('Location: ../login.php');
+    exit();
 }

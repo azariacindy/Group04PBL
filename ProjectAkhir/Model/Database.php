@@ -7,7 +7,7 @@ class Database
 
     private function __construct()
     {
-        include_once(__DIR__ . '/../lib/NewConnection.php');
+        include_once(__DIR__ . '/../lib/Connection.php');
         $this->db = $db;
         $this->driver = $use_driver; // Assume this is coming from the connection file
     }

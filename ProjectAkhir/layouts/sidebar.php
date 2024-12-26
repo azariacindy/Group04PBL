@@ -45,14 +45,17 @@ data-accordion="false">
                 <p>Dashboard</p> 
             </a> 
         </li> 
-        <li class="nav-item border-bottom"> 
+        <li class="nav-item border-item"> 
             <a href="index.php?page=daftarlomba" class="nav-link"> 
                 <i class="nav-icon fas fa-flag"></i> 
                 <p>Daftar Lomba</p> 
             </a> 
         </li> 
         <li class="nav-item border-bottom">
-            <a href=""></a>
+            <a href="index.php?page=input_prestasi" class="nav-link">
+                <i class="nav-icon fas fa-medal"></i>
+                <p>Input Prestasi</p>
+            </a>
         </li>
         <li class="nav-item"> 
             <a href="../ProjectAkhir/action/auth.php?act=logout" class="nav-link"> 

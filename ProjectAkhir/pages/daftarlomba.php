@@ -134,8 +134,6 @@
     });
 }
 
-
-
     function editData(id) {
         $.ajax({
             url: 'action/daftarlombaAction.php?act=get&id=' + id,
