@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Prestasi</title>
+    <link rel="stylesheet" href="css/Dashboard.css">
+</head>
+<body>
+    <div class="sidebar">
+        <img src="img/polinema.png" alt="Polinema Logo" class="logo">
+        <h2>Polinema</h2>
+        <ul>
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Upload Prestasi</a></li>
+            <li><a href="#">Riwayat Prestasi</a></li>
+        </ul>
+        <div class="logout">
+            <a href="Login.html" style="color: white;">Logout</a>
+        </div>
+    </div>
+    <div class="content">
+        <div class="header">
+            <h1>Selamat Datang Kembali di Dashboard!</h1>
+            <p>Selamat datang, Mahasiswa berprestasi!</p>
+        </div>
+        <div class="cards">
+            <div class="card">
+                <h3>Terakhir Mengunggah</h3>
+                <p>27 Prestasi berhasil diunggah</p>
+                <button>+</button>
+            </div>
+            <div class="card">
+                <h3>Ingin Mengikuti Perlombaan?</h3>
+                <button>Cari Lomba</button>
+            </div>
+            <div class="card">
+                <h3>Butuh Bimbingan Dari Dosen?</h3>
+                <button>Temukan</button>
+            </div>
+            <div class="card">
+                <h3>Lomba Diikuti</h3>
+                <button>Cek Progress</button>
+            </div>
+        </div>
+        <div class="chart">
+            <h2>Data Statistik Prestasi Mahasiswa</h2>
+            <canvas id="chart"></canvas>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('chart');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#e0e7ff';
+        ctx.strokeStyle = '#2d3eaf';
+        ctx.lineWidth = 2;
+
+        // Sample chart data
+        const data = [50, 70, 40, 90, 60, 100];
+
+        const width = canvas.width / data.length;
+        const maxHeight = Math.max(...data);
+
+        ctx.beginPath();
+        data.forEach((point, index) => {
+            const x = index * width + width / 2;
+            const y = canvas.height - (point / maxHeight) * canvas.height;
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.stroke();
+    </script>
+</body>
+</html>
