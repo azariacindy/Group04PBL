@@ -26,6 +26,8 @@ if ($session->get('is_login') !== true) {
   <link rel="stylesheet" href="adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
   <!-- jQuery -->
   <script src="adminlte/plugins/jquery/jquery.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="hold-transition sidebar-mini">
@@ -85,6 +87,8 @@ if ($session->get('is_login') !== true) {
 
   <!-- Bootstrap 4 -->
   <script src="adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- jQuery Validation -->
   <script src="adminlte/plugins/jquery-validation/jquery.validate.min.js"></script>
   <script src="adminlte/plugins/jquery-validation/additional-methods.min.js"></script>

@@ -99,36 +99,57 @@ class PrestasiModel extends Model
         return $this->db;
     }
 
+    public function getTable() {
+        return $this->table;
+    }
+
     public function insertData($data)
     {
         try {
             // Get NIM from username if not provided
             if (empty($data['nim'])) {
-                $username = isset($_SESSION['[user]']) ? $_SESSION['[user]'] : '';
+                $username = isset($_SESSION['user']) ? $_SESSION['user'] : '';
                 $data['nim'] = $this->getNimFromUsername($username);
                 if (!$data['nim']) {
                     throw new Exception('NIM tidak ditemukan untuk user ini');
                 }
             }
 
+            // Set default values if not provided
+            $data['status_validasi'] = $data['status_validasi'] ?? '-1'; // Default: belum divalidasi
+            $data['status_lomba'] = $data['status_lomba'] ?? 'in progress'; // Default: sedang berlangsung
+            $data['alasan'] = $data['alasan'] ?? null;
+
+            // Validasi status_validasi
+            if (!in_array($data['status_validasi'], ['-1', '0', '1', '2', '3'])) {
+                throw new Exception('Status validasi tidak valid. Harus salah satu dari: -1, 0, 1, 2, 3');
+            }
+
+            // Validasi status_lomba
+            if (!in_array($data['status_lomba'], ['in progress', 'completed'])) {
+                throw new Exception('Status lomba tidak valid. Harus salah satu dari: in progress, completed');
+            }
+
             $sql = "INSERT INTO {$this->table} (nim, nip, id_lomba, tanggal, detail_lomba, berkas, peringkat, status_lomba, status_validasi, alasan) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $params = [
-                $data['nim'],
-                $data['nip'],
-                $data['id_lomba'],
+                intval($data['nim']),
+                intval($data['nip']),
+                intval($data['id_lomba']),
                 $data['tanggal'],
                 $data['detail_lomba'],
                 $data['berkas'],
                 $data['peringkat'],
                 $data['status_lomba'],
                 $data['status_validasi'],
-                $data['status_validasi'] == 0 ? $data['alasan'] : null
+                $data['alasan']
             ];
+
             $stmt = sqlsrv_query($this->db, $sql, $params);
             if ($stmt === false) {
-                throw new Exception('Gagal menyimpan data: ' . print_r(sqlsrv_errors(), true));
+                throw new Exception('Gagal menyimpan data prestasi: ' . print_r(sqlsrv_errors(), true));
             }
+
             return [
                 'status' => true,
                 'message' => 'Data prestasi berhasil disimpan'
@@ -144,26 +165,18 @@ class PrestasiModel extends Model
     public function getData() {
         try {
             $query = "SELECT 
-                        p.id_prestasi,
-                        p.nim,
+                        p.*,
                         m.nama_mhs,
-                        p.nip,
                         d.nama_dosen,
-                        p.id_lomba,
                         l.nama_lomba,
+                        l.detail_lomba as detail_kategori_lomba,
                         t.nama_tingkat,
-                        p.tanggal,
-                        p.detail_lomba,
-                        p.berkas,
-                        p.peringkat,
-                        p.status_lomba,
-                        p.status_validasi,
-                        p.alasan
+                        t.id_tingkat
                     FROM [prestasi] p 
-                    LEFT JOIN [mahasiswa] m ON p.nim = m.nim 
-                    LEFT JOIN [dosen] d ON p.nip = d.nip 
-                    LEFT JOIN [lomba] l ON p.id_lomba = l.id_lomba 
-                    LEFT JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat 
+                    INNER JOIN [mahasiswa] m ON p.nim = m.nim 
+                    INNER JOIN [dosen] d ON p.nip = d.nip 
+                    INNER JOIN [lomba] l ON p.id_lomba = l.id_lomba 
+                    INNER JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat 
                     ORDER BY p.id_prestasi DESC";
             
             $stmt = sqlsrv_query($this->db, $query);
@@ -179,26 +192,18 @@ class PrestasiModel extends Model
     public function getDataById($id) {
         try {
             $query = "SELECT 
-                        p.id_prestasi,
-                        p.nim,
+                        p.*,
                         m.nama_mhs,
-                        p.nip,
                         d.nama_dosen,
-                        p.id_lomba,
                         l.nama_lomba,
+                        l.detail_lomba as detail_kategori_lomba,
                         t.nama_tingkat,
-                        p.tanggal,
-                        p.detail_lomba,
-                        p.berkas,
-                        p.peringkat,
-                        p.status_lomba,
-                        p.status_validasi,
-                        p.alasan
+                        t.id_tingkat
                     FROM [prestasi] p 
-                    LEFT JOIN [mahasiswa] m ON p.nim = m.nim 
-                    LEFT JOIN [dosen] d ON p.nip = d.nip 
-                    LEFT JOIN [lomba] l ON p.id_lomba = l.id_lomba 
-                    LEFT JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat 
+                    INNER JOIN [mahasiswa] m ON p.nim = m.nim 
+                    INNER JOIN [dosen] d ON p.nip = d.nip 
+                    INNER JOIN [lomba] l ON p.id_lomba = l.id_lomba 
+                    INNER JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat 
                     WHERE p.id_prestasi = ?";
                     
             $stmt = sqlsrv_query($this->db, $query, [$id]);
@@ -214,20 +219,21 @@ class PrestasiModel extends Model
     public function getDataByNimUser($nim)
     {
         try {
-            // Convert string NIM to match database format
             $nim = trim($nim);
             
-            $sql = "SELECT p.*, 
-                    m.nama_mhs as nama_mhs, 
-                    d.nama_dosen as nama_dosen, 
-                    l.nama_lomba as nama_lomba, 
-                    t.nama_tingkat as nama_tingkat,
-                    p.alasan
+            $sql = "SELECT 
+                    p.*,
+                    m.nama_mhs,
+                    d.nama_dosen,
+                    l.nama_lomba,
+                    l.detail_lomba as detail_kategori_lomba,
+                    t.nama_tingkat,
+                    t.id_tingkat
                     FROM [prestasi] p
-                    LEFT JOIN [mahasiswa] m ON p.nim = m.nim
-                    LEFT JOIN [dosen] d ON p.nip = d.nip
-                    LEFT JOIN [lomba] l ON p.id_lomba = l.id_lomba
-                    LEFT JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat 
+                    INNER JOIN [mahasiswa] m ON p.nim = m.nim
+                    INNER JOIN [dosen] d ON p.nip = d.nip
+                    INNER JOIN [lomba] l ON p.id_lomba = l.id_lomba
+                    INNER JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat
                     WHERE p.nim = ?
                     ORDER BY p.id_prestasi DESC";
 
@@ -242,36 +248,97 @@ class PrestasiModel extends Model
         }
     }
 
-    public function updateData($id, $data) {
+    public function updateData($id, $data)
+    {
         try {
-            $query = "UPDATE [prestasi] SET ";
-            $params = [];
+            // Prepare update data
+            $updateData = [];
             
-            foreach ($data as $key => $value) {
-                if ($key !== 'id_prestasi') {
-                    if ($key === 'alasan' && $data['status_validasi'] == 1) {
-                        continue; // Skip alasan if status is valid
+            // Jika ini adalah validasi SKKM (hanya status_validasi dan alasan)
+            if (isset($data['status_validasi'])) {
+                // Validasi status_validasi sesuai constraint CK_status_validasi
+                $status_validasi = strval($data['status_validasi']);
+                if (!in_array($status_validasi, ['-1', '0', '1', '2', '3'])) {
+                    throw new Exception('Status validasi tidak valid. Harus salah satu dari: -1, 0, 1, 2, 3');
+                }
+                $updateData['status_validasi'] = $status_validasi;
+                
+                if ($status_validasi === '0') {
+                    if (empty($data['alasan'])) {
+                        throw new Exception('Alasan penolakan harus diisi');
                     }
-                    $query .= "$key = ?, ";
-                    $params[] = $value;
+                    $updateData['alasan'] = $data['alasan'];
+                    $updateData['peringkat'] = null; // Reset peringkat jika ditolak
+                } else {
+                    $updateData['alasan'] = null; // Reset alasan jika diterima
+                    if (isset($data['peringkat'])) {
+                        $updateData['peringkat'] = strval($data['peringkat']);
+                    }
+                }
+            } 
+            // Jika ini adalah update data prestasi biasa
+            else {
+                $allowedFields = ['nip', 'id_lomba', 'tanggal', 'detail_lomba', 'berkas', 'peringkat', 'status_lomba'];
+                foreach ($allowedFields as $field) {
+                    if (isset($data[$field])) {
+                        // Convert numeric fields to int
+                        if (in_array($field, ['nip', 'id_lomba'])) {
+                            $updateData[$field] = intval($data[$field]);
+                        }
+                        // Validate status_lomba
+                        else if ($field === 'status_lomba') {
+                            $status_lomba = strval($data[$field]);
+                            if (!in_array($status_lomba, ['in progress', 'completed'])) {
+                                throw new Exception('Status lomba tidak valid. Harus salah satu dari: in progress, completed');
+                            }
+                            $updateData[$field] = $status_lomba;
+                        }
+                        // Convert string fields
+                        else if ($field === 'peringkat') {
+                            $updateData[$field] = strval($data[$field]);
+                        }
+                        // Other fields remain as is
+                        else {
+                            $updateData[$field] = $data[$field];
+                        }
+                    }
                 }
             }
-            $query = rtrim($query, ", ");
-            $query .= " WHERE id_prestasi = ?";
-            $params[] = $id;
 
-            $stmt = sqlsrv_query($this->db, $query, $params);
-            if ($stmt === false) {
-                throw new Exception('Gagal mengupdate data: ' . print_r(sqlsrv_errors(), true));
+            // If no fields to update, return success
+            if (empty($updateData)) {
+                return [
+                    'status' => true,
+                    'message' => 'Tidak ada data yang diupdate'
+                ];
             }
+
+            // Build UPDATE query
+            $sql = "UPDATE [prestasi] SET ";
+            $params = [];
+            foreach ($updateData as $key => $value) {
+                $sql .= "[$key] = ?, ";
+                $params[] = $value;
+            }
+            $sql = rtrim($sql, ", ") . " WHERE id_prestasi = ?";
+            $params[] = intval($id); // Convert to int to match column type
+
+            // Execute query
+            $stmt = sqlsrv_query($this->db, $sql, $params);
+            if ($stmt === false) {
+                throw new Exception("Gagal update prestasi: " . print_r(sqlsrv_errors(), true));
+            }
+
             return [
                 'status' => true,
-                'message' => 'Data prestasi berhasil diupdate'
+                'message' => isset($data['status_validasi']) ? 
+                    'Status validasi berhasil diupdate' : 
+                    'Data prestasi berhasil diupdate'
             ];
         } catch (Exception $e) {
             return [
                 'status' => false,
-                'message' => 'Gagal mengupdate data: ' . $e->getMessage()
+                'message' => $e->getMessage()
             ];
         }
     }
@@ -293,9 +360,11 @@ class PrestasiModel extends Model
     public function getAllLomba()
     {
         try {
-            $sql = "SELECT l.id_lomba, l.nama_lomba, t.nama_tingkat 
+            $sql = "SELECT l.id_lomba, l.nama_lomba, l.detail_lomba, 
+                           t.id_tingkat, t.nama_tingkat
                     FROM [lomba] l 
-                    JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat";
+                    INNER JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat
+                    ORDER BY l.nama_lomba";
             $stmt = sqlsrv_query($this->db, $sql);
             if ($stmt === false) {
                 throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
@@ -494,6 +563,100 @@ class PrestasiModel extends Model
             return $data;
         } catch (Exception $e) {
             return [];
+        }
+    }
+
+    // Menggunakan query langsung untuk laporan prestasi
+    public function getLaporanPrestasi($tanggal_mulai, $tanggal_akhir)
+    {
+        try {
+            $sql = "SELECT p.*, m.nama_mhs, d.nama_dosen, l.nama_lomba, t.nama_tingkat
+                    FROM [prestasi] p
+                    LEFT JOIN [mahasiswa] m ON p.nim = m.nim
+                    LEFT JOIN [dosen] d ON p.nip = d.nip
+                    LEFT JOIN [lomba] l ON p.id_lomba = l.id_lomba
+                    LEFT JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat
+                    WHERE p.tanggal BETWEEN ? AND ?
+                    ORDER BY p.tanggal DESC";
+            
+            $params = [$tanggal_mulai, $tanggal_akhir];
+            $stmt = sqlsrv_query($this->db, $sql, $params);
+            if ($stmt === false) {
+                throw new Exception('Gagal mengambil laporan: ' . print_r(sqlsrv_errors(), true));
+            }
+            
+            $result = [];
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $result[] = $row;
+            }
+            return [
+                'status' => true,
+                'data' => $result
+            ];
+        } catch (Exception $e) {
+            return [
+                'status' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    // Menggunakan query langsung untuk mendapatkan lomba aktif
+    public function getLombaAktif()
+    {
+        try {
+            $sql = "SELECT l.*, t.nama_tingkat
+                    FROM [lomba] l
+                    JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat
+                    WHERE l.status = 'aktif'
+                    ORDER BY l.nama_lomba";
+            
+            $stmt = sqlsrv_query($this->db, $sql);
+            if ($stmt === false) {
+                throw new Exception('Gagal mengambil data lomba aktif: ' . print_r(sqlsrv_errors(), true));
+            }
+            
+            $result = [];
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $result[] = $row;
+            }
+            return [
+                'status' => true,
+                'data' => $result
+            ];
+        } catch (Exception $e) {
+            return [
+                'status' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    // Menggunakan query langsung untuk validasi prestasi
+    public function validasiPrestasi($id_prestasi, $status_validasi, $peringkat = null)
+    {
+        try {
+            // Siapkan data untuk update
+            $data = [
+                'status_validasi' => strval($status_validasi)
+            ];
+
+            // Jika status ditolak (0), tambahkan alasan
+            if ($status_validasi === '0') {
+                $data['alasan'] = $_POST['alasan'] ?? null;
+                $data['peringkat'] = null; // Reset peringkat jika ditolak
+            } else {
+                $data['alasan'] = null; // Reset alasan jika diterima
+                $data['peringkat'] = $peringkat ? strval($peringkat) : null;
+            }
+
+            // Update data menggunakan method updateData yang sudah ada
+            return $this->updateData($id_prestasi, $data);
+        } catch (Exception $e) {
+            return [
+                'status' => false,
+                'message' => $e->getMessage()
+            ];
         }
     }
 }
