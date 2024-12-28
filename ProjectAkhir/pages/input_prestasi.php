@@ -54,6 +54,7 @@ $role = $session->get('role');
 <!-- Modal Form -->
 <div class="modal fade" id="form-data">
     <form action="action/prestasiAction.php?act=save" method="post" id="formTambah" enctype="multipart/form-data">
+        <input type="hidden" name="id_prestasi" id="id_prestasi">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -63,10 +64,13 @@ $role = $session->get('role');
                 <div class="modal-body">
                     <div class="form-group">
                         <label>NIM</label>
+                        <?php if ($role == 'admin'): ?>
                         <select class="form-control" name="nim" id="nim" required>
                             <option value="">Pilih Mahasiswa</option>
                         </select>
-                        <input type="text" class="form-control" id="nim_text" readonly style="display: none;">
+                        <?php else: ?>
+                        <input type="text" class="form-control" id="nim_text" readonly>
+                        <?php endif; ?>
                     </div>
                     <div class="form-group">
                         <label>NIP Dosen</label>
@@ -157,6 +161,36 @@ $role = $session->get('role');
 <script>
     var tabledata;
     var isAdmin = <?php echo json_encode($role == 'admin'); ?>;
+
+    // Function to load tingkat lomba based on id_lomba
+    function loadTingkatLomba(id_lomba) {
+        if (!id_lomba) {
+            $('#tingkat_lomba').val('');
+            return;
+        }
+
+        $.ajax({
+            url: 'action/prestasiAction.php?act=get_tingkat_lomba',
+            method: 'GET',
+            data: { id_lomba: id_lomba },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status && response.data) {
+                    $('#tingkat_lomba').val(response.data.nama_tingkat);
+                } else {
+                    $('#tingkat_lomba').val('');
+                    console.error('Error:', response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#tingkat_lomba').val('');
+                console.error('AJAX Error:', status, error);
+                if (xhr.responseText) {
+                    console.error('Server Response:', xhr.responseText);
+                }
+            }
+        });
+    }
 
     // Function to check berkas and update status_lomba
     function checkBerkas() {
@@ -274,38 +308,42 @@ $role = $session->get('role');
             dataType: 'json',
             success: function(response) {
                 if (response.status) {
-                    var data = response.data;
                     $('#form-data').modal('show');
-                    $('#formTambah').attr('action', 'action/prestasiAction.php?act=update&id=' + id);
+                    $('.modal-title').text('Edit Prestasi');
+                    $('#formTambah').attr('action', 'action/prestasiAction.php?act=update');
                     
-                    if (isAdmin) {
-                        // Admin hanya bisa edit status validasi dan alasan
-                        $('.modal-title').text('Validasi Prestasi');
-                        $('#nim, #nip, #id_lomba, #tanggal, #detail_lomba, #berkas, #peringkat, #status_lomba').prop('disabled', true);
-                        $('#status_validasi').val(data.status_validasi);
-                        $('#alasan').val(data.alasan);
-                        toggleAlasan();
+                    // Set the id_prestasi in hidden field
+                    $('#id_prestasi').val(id);
+                    
+                    // Set other form values
+                    $('#nim').val(response.data.nim);
+                    $('#nip').val(response.data.nip);
+                    $('#id_lomba').val(response.data.id_lomba);
+                    $('#tanggal').val(response.data.tanggal);
+                    $('#detail_lomba').val(response.data.detail_lomba);
+                    $('#peringkat').val(response.data.peringkat);
+                    $('#status_lomba').val(response.data.status_lomba);
+                    
+                    // Handle file field
+                    if (response.data.berkas) {
+                        $('#berkas').prop('required', false);
                     } else {
-                        // Mahasiswa bisa edit semua kecuali status validasi
-                        $('.modal-title').text('Edit Prestasi');
-                        $('#nim').prop('disabled', true);
-                        $('#nip, #id_lomba, #tanggal, #detail_lomba, #berkas, #peringkat, #status_lomba').prop('disabled', false);
-                        $('#status_validasi, #alasan').prop('disabled', true);
-                        $('#nim').val(data.nim);
-                        $('#nip').val(data.nip);
-                        $('#id_lomba').val(data.id_lomba);
-                        $('#tanggal').val(data.tanggal);
-                        $('#detail_lomba').val(data.detail_lomba);
-                        $('#peringkat').val(data.peringkat);
-                        $('#status_lomba').val(data.status_lomba);
+                        $('#berkas').prop('required', true);
                     }
+                    
+                    // Load tingkat lomba
+                    loadTingkatLomba(response.data.id_lomba);
+
+                    // Hide custom lomba form when editing
+                    $('#customLombaCheck').prop('checked', false);
+                    $('#customLombaForm').hide();
                 } else {
-                    alert(response.message);
+                    Swal.fire('Error', response.message, 'error');
                 }
             },
             error: function(xhr, status, error) {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat mengambil data');
+                console.error(xhr.responseText);
+                Swal.fire('Error', 'Terjadi kesalahan saat mengambil data', 'error');
             }
         });
     }
@@ -641,11 +679,7 @@ $role = $session->get('role');
 
         // Event handlers
         $('#id_lomba').change(function() {
-            var selectedOption = $(this).find('option:selected');
-            if (selectedOption.length > 0) {
-                var namaLomba = selectedOption.text().split('(')[0].trim();
-                $('#nama_lomba').val(namaLomba);
-            }
+            loadTingkatLomba($(this).val());
         });
 
         $('#status_validasi').change(function() {

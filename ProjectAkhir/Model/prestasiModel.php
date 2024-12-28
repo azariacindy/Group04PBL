@@ -24,6 +24,10 @@ class PrestasiModel extends Model
         return $this->db;
     }
 
+    public function getConnection() {
+        return $this->db;
+    }
+
     public function getTable() {
         return $this->table;
     }
@@ -104,6 +108,27 @@ class PrestasiModel extends Model
 
         error_log("Could not get NIM for username: " . $username);
         return null;
+    }
+
+    public function getNimByUserId($user_id) {
+        try {
+            $sql = "SELECT nim FROM mahasiswa WHERE id_user = ?";
+            $params = array($user_id);
+            $stmt = sqlsrv_query($this->db, $sql, $params);
+            
+            if ($stmt === false) {
+                throw new Exception("Error getting user details: " . print_r(sqlsrv_errors(), true));
+            }
+            
+            $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+            if (!$row) {
+                throw new Exception("Student data not found. Please contact administrator.");
+            }
+            
+            return $row['nim'];
+        } catch (Exception $e) {
+            throw $e;
+        }
     }
 
     public function insertData($data)
@@ -254,6 +279,25 @@ class PrestasiModel extends Model
     public function updateData($id, $data)
     {
         try {
+            // First check if the lomba exists
+            if (isset($data['id_lomba'])) {
+                $check_sql = "SELECT id_lomba FROM lomba WHERE id_lomba = ?";
+                $check_stmt = sqlsrv_query($this->db, $check_sql, array($data['id_lomba']));
+                
+                if ($check_stmt === false) {
+                    throw new Exception("Error checking lomba: " . print_r(sqlsrv_errors(), true));
+                }
+                
+                if (!sqlsrv_fetch_array($check_stmt)) {
+                    throw new Exception("Lomba with ID " . $data['id_lomba'] . " does not exist.");
+                }
+            }
+
+            // Handle custom lomba if needed
+            if (isset($data['is_custom_lomba']) && $data['is_custom_lomba'] == '1') {
+                $data['id_lomba'] = $this->createLomba($data['custom_nama_lomba'], $data['custom_tingkat']);
+            }
+
             // Prepare update data
             $updateData = [];
             
@@ -761,7 +805,7 @@ class PrestasiModel extends Model
             $id_user = $_SESSION['id_user'];
 
             // Insert prestasi data
-            $sql = "INSERT INTO [prestasi] (nim, nip, id_lomba, tanggal, detail_lomba, berkas, peringkat, status_lomba, status_validasi) 
+            $sql = "INSERT INTO {$this->table} (nim, nip, id_lomba, tanggal, detail_lomba, berkas, peringkat, status_lomba, status_validasi) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             $params = [
@@ -772,8 +816,8 @@ class PrestasiModel extends Model
                 isset($data['detail_lomba']) ? $data['detail_lomba'] : null,
                 $data['berkas'],
                 $data['peringkat'],
-                isset($data['status_lomba']) ? $data['status_lomba'] : 'pending', // Default value if not provided
-                isset($data['status_validasi']) ? $data['status_validasi'] : '0'  // Default to '0' for pending validation
+                'in progress', // Using 'in progress' as it's likely one of the allowed values
+                isset($data['status_validasi']) ? $data['status_validasi'] : '0'
             ];
             
             $stmt = sqlsrv_query($this->db, $sql, $params);
@@ -785,6 +829,30 @@ class PrestasiModel extends Model
             return true;
         } catch (Exception $e) {
             error_log("Error in save: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function getTingkatLomba($id_lomba) {
+        try {
+            $sql = "SELECT l.id_tingkat, t.nama_tingkat 
+                    FROM lomba l 
+                    JOIN tingkat t ON l.id_tingkat = t.id_tingkat 
+                    WHERE l.id_lomba = ?";
+            $stmt = sqlsrv_query($this->db, $sql, array($id_lomba));
+            
+            if ($stmt === false) {
+                throw new Exception("Error getting tingkat lomba: " . print_r(sqlsrv_errors(), true));
+            }
+            
+            $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+            if (!$row) {
+                throw new Exception('Lomba tidak ditemukan');
+            }
+
+            return $row;
+        } catch (Exception $e) {
+            error_log("Error in getTingkatLomba: " . $e->getMessage());
             throw $e;
         }
     }

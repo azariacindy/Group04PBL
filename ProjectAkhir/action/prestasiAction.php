@@ -3,20 +3,24 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once(__DIR__ . '/../Model/prestasiModel.php');
 require_once(__DIR__ . '/../lib/Session.php');
-
-// Set JSON content type header for all AJAX responses
-header('Content-Type: application/json');
+require_once(__DIR__ . '/../Model/prestasiModel.php');
 
 $prestasi = new PrestasiModel();
 $session = new Session();
 
+// Check session
 if (!$session->get('is_login')) {
-    http_response_code(401);
-    echo json_encode(['status' => false, 'message' => 'Sesi login telah berakhir']);
-    exit;
+    $response['status'] = false;
+    $response['message'] = 'Anda harus login terlebih dahulu';
+    echo json_encode($response);
+    exit();
 }
+
+$role = $session->get('role');
+
+// Set JSON content type header for all AJAX responses
+header('Content-Type: application/json');
 
 $act = isset($_GET['act']) ? $_GET['act'] : '';
 $role = $session->get('role');
@@ -36,112 +40,6 @@ try {
         case 'get_mahasiswa':
             $data = $prestasi->getAllMahasiswa();
             echo json_encode($data);
-            break;
-
-        case 'save':
-            // Handle save action
-            try {
-                $nim = isset($_POST['nim']) ? $_POST['nim'] : '';
-                $nip = isset($_POST['nip']) ? $_POST['nip'] : '';
-                
-                // Handle custom lomba
-                $id_lomba = null;
-                if (isset($_POST['is_custom_lomba']) && $_POST['is_custom_lomba'] == '1') {
-                    // Create new lomba first
-                    $nama_lomba = $_POST['custom_nama_lomba'];
-                    $tingkat = $_POST['custom_tingkat'];
-                    $id_lomba = $prestasi->createLomba($nama_lomba, $tingkat);
-                } else {
-                    $id_lomba = $_POST['id_lomba'];
-                }
-
-                // Upload file
-                $berkas = '';
-                if (isset($_FILES['berkas']) && $_FILES['berkas']['error'] == 0) {
-                    $file = $_FILES['berkas'];
-                    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-                    $berkas = uniqid() . '.' . $ext;
-                    
-                    move_uploaded_file($file['tmp_name'], '../uploads/' . $berkas);
-                }
-
-                // Save prestasi
-                $data = [
-                    'nim' => $nim,
-                    'nip' => $nip,
-                    'id_lomba' => $id_lomba,
-                    'tanggal' => $_POST['tanggal'],
-                    'detail_lomba' => $_POST['detail_lomba'],
-                    'berkas' => $berkas,
-                    'peringkat' => $_POST['peringkat'],
-                    'status_lomba' => isset($_POST['status_lomba']) ? $_POST['status_lomba'] : 'pending',
-                    'status_validasi' => isset($_POST['status_validasi']) ? $_POST['status_validasi'] : '0'
-                ];
-
-                if ($prestasi->save($data)) {
-                    echo json_encode(['status' => true, 'message' => 'Data berhasil disimpan']);
-                } else {
-                    echo json_encode(['status' => false, 'message' => 'Gagal menyimpan data']);
-                }
-            } catch (Exception $e) {
-                echo json_encode(['status' => false, 'message' => $e->getMessage()]);
-            }
-            break;
-
-        case 'delete':
-            try {
-                $id = isset($_GET['id']) ? $_GET['id'] : null;
-                if (!$id) {
-                    throw new Exception("ID tidak valid");
-                }
-
-                // Ambil data prestasi
-                $stmt = $prestasi->getDataById($id);
-                if ($stmt === false) {
-                    throw new Exception("Gagal mengambil data prestasi");
-                }
-
-                $data = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-                if (!$data) {
-                    throw new Exception("Data tidak ditemukan");
-                }
-
-                // Cek akses berdasarkan role
-                if ($role != 'admin') {
-                    // Jika bukan admin, cek kepemilikan dan status validasi
-                    $nim = $prestasi->getNimFromUsername($session->get('user'));
-                    if ($data['nim'] != $nim) {
-                        throw new Exception("Anda tidak memiliki akses untuk menghapus data ini");
-                    }
-                    if ($data['status_validasi'] != 0) {
-                        throw new Exception("Data yang sudah divalidasi tidak dapat dihapus");
-                    }
-                }
-
-                // Hapus file berkas jika ada
-                if (!empty($data['berkas'])) {
-                    $filePath = __DIR__ . '/../uploads/' . $data['berkas'];
-                    if (file_exists($filePath)) {
-                        unlink($filePath);
-                    }
-                }
-
-                // Lakukan penghapusan
-                $result = $prestasi->deleteData($id);
-                if (!$result['status']) {
-                    throw new Exception($result['message']);
-                }
-
-                echo json_encode([
-                    'status' => true,
-                    'message' => 'Data berhasil dihapus'
-                ]);
-            } catch (Exception $e) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => $e->getMessage()
-                ]);
-            }
             break;
 
         case 'load':
@@ -211,6 +109,165 @@ try {
                     'recordsTotal' => 0,
                     'recordsFiltered' => 0,
                     'data' => []
+                ]);
+            }
+            break;
+
+        case 'save':
+            try {
+                // Get user ID from session
+                $user_id = $session->get('id_user');
+                
+                // For admin, use the selected NIM
+                // For students, get their own NIM
+                if ($role === 'admin') {
+                    if (empty($_POST['nim'])) {
+                        throw new Exception('NIM harus dipilih');
+                    }
+                    $nim = $_POST['nim'];
+                } else {
+                    // Only students can submit their own prestasi
+                    if ($role !== 'mahasiswa') {
+                        throw new Exception('Unauthorized access');
+                    }
+                    $nim = $prestasi->getNimFromUsername($session->get('user'));
+                    if (!$nim) {
+                        throw new Exception('NIM tidak ditemukan');
+                    }
+                }
+
+                // Handle custom lomba if needed
+                if (isset($_POST['is_custom_lomba']) && $_POST['is_custom_lomba'] == '1') {
+                    if (empty($_POST['custom_nama_lomba']) || empty($_POST['custom_tingkat'])) {
+                        throw new Exception('Nama lomba dan tingkat harus diisi');
+                    }
+                    $_POST['id_lomba'] = $prestasi->createLomba($_POST['custom_nama_lomba'], $_POST['custom_tingkat']);
+                }
+
+                // Handle file upload
+                if (isset($_FILES['berkas']) && $_FILES['berkas']['error'] == 0) {
+                    $target_dir = "../uploads/prestasi/";
+                    if (!file_exists($target_dir)) {
+                        mkdir($target_dir, 0777, true);
+                    }
+                    
+                    $file_extension = strtolower(pathinfo($_FILES['berkas']['name'], PATHINFO_EXTENSION));
+                    $newFileName = uniqid() . '.' . $file_extension;
+                    $target_file = $target_dir . $newFileName;
+                    
+                    if (move_uploaded_file($_FILES['berkas']['tmp_name'], $target_file)) {
+                        $_POST['berkas'] = $newFileName;
+                    } else {
+                        throw new Exception("Error uploading file.");
+                    }
+                }
+
+                // Set the NIM in POST data
+                $_POST['nim'] = $nim;
+                
+                // Set initial status
+                $_POST['status_validasi'] = 0; // Pending validation
+                if ($role === 'admin') {
+                    $_POST['status_validasi'] = 1; // Auto-validate if admin submits
+                }
+
+                $result = $prestasi->save($_POST);
+                if ($result) {
+                    $response['status'] = true;
+                    $response['message'] = 'Berhasil simpan prestasi';
+                } else {
+                    throw new Exception('Gagal menyimpan prestasi');
+                }
+            } catch (Exception $e) {
+                $response['status'] = false;
+                $response['message'] = $e->getMessage();
+            }
+            echo json_encode($response);
+            break;
+
+        case 'update':
+            try {
+                // Allow both admin and students to update, but with different permissions
+                if ($role !== 'admin' && $role !== 'mahasiswa') {
+                    throw new Exception('Unauthorized access');
+                }
+
+                // If admin, only allow updating status_validasi and alasan
+                if ($role === 'admin') {
+                    $allowedFields = ['status_validasi', 'alasan'];
+                    $updateData = array_intersect_key($_POST, array_flip($allowedFields));
+                } else {
+                    // For students, don't allow updating status_validasi and alasan
+                    $updateData = $_POST;
+                    unset($updateData['status_validasi']);
+                    unset($updateData['alasan']);
+                }
+
+                if ($prestasi->updateData($_POST['id_prestasi'], $updateData)) {
+                    $response['status'] = true;
+                    $response['message'] = 'Berhasil update prestasi';
+                } else {
+                    throw new Exception("Gagal update prestasi");
+                }
+            } catch (Exception $e) {
+                $response['status'] = false;
+                $response['message'] = $e->getMessage();
+            }
+            echo json_encode($response);
+            break;
+
+        case 'delete':
+            try {
+                $id = isset($_GET['id']) ? $_GET['id'] : null;
+                if (!$id) {
+                    throw new Exception("ID tidak valid");
+                }
+
+                // Ambil data prestasi
+                $stmt = $prestasi->getDataById($id);
+                if ($stmt === false) {
+                    throw new Exception("Gagal mengambil data prestasi");
+                }
+
+                $data = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+                if (!$data) {
+                    throw new Exception("Data tidak ditemukan");
+                }
+
+                // Cek akses berdasarkan role
+                if ($role != 'admin') {
+                    // Jika bukan admin, cek kepemilikan dan status validasi
+                    $nim = $prestasi->getNimFromUsername($session->get('user'));
+                    if ($data['nim'] != $nim) {
+                        throw new Exception("Anda tidak memiliki akses untuk menghapus data ini");
+                    }
+                    if ($data['status_validasi'] != 0) {
+                        throw new Exception("Data yang sudah divalidasi tidak dapat dihapus");
+                    }
+                }
+
+                // Hapus file berkas jika ada
+                if (!empty($data['berkas'])) {
+                    $filePath = __DIR__ . '/../uploads/' . $data['berkas'];
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
+                }
+
+                // Lakukan penghapusan
+                $result = $prestasi->deleteData($id);
+                if (!$result['status']) {
+                    throw new Exception($result['message']);
+                }
+
+                echo json_encode([
+                    'status' => true,
+                    'message' => 'Data berhasil dihapus'
+                ]);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => $e->getMessage()
                 ]);
             }
             break;
@@ -311,80 +368,6 @@ try {
             }
             break;
 
-        case 'update':
-            try {
-                // Prevent admin from editing data
-                if ($role == 'admin') {
-                    throw new Exception('Admin tidak diizinkan mengedit data prestasi');
-                }
-
-                $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-                if (!$id) {
-                    throw new Exception('ID prestasi tidak valid');
-                }
-
-                // Get current data
-                $stmt = $prestasi->getDataById($id);
-                if ($stmt === false) {
-                    throw new Exception('Gagal mengambil data prestasi');
-                }
-
-                $currentData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-                if (!$currentData) {
-                    throw new Exception('Data prestasi tidak ditemukan');
-                }
-
-                // Check if data belongs to the user
-                $nim = $prestasi->getNimFromUsername($session->get('user'));
-                if ($currentData['nim'] != $nim) {
-                    throw new Exception('Anda tidak memiliki akses untuk mengedit data ini');
-                }
-
-                // Check if data is already validated
-                if ($currentData['status_validasi'] != 0) {
-                    throw new Exception('Data yang sudah divalidasi tidak dapat diedit');
-                }
-
-                // Mahasiswa bisa update semua field kecuali status_validasi
-                $data = [
-                    'nip' => $_POST['nip'],
-                    'id_lomba' => $_POST['id_lomba'],
-                    'tanggal' => $_POST['tanggal'],
-                    'detail_lomba' => $_POST['detail_lomba'],
-                    'peringkat' => $_POST['peringkat'],
-                    'status_lomba' => $_POST['status_lomba']
-                ];
-                
-                // Handle file upload jika ada file baru
-                if (isset($_FILES['berkas']) && $_FILES['berkas']['size'] > 0) {
-                    // Delete old file if exists
-                    if (!empty($currentData['berkas'])) {
-                        $oldFilePath = __DIR__ . '/../uploads/' . $currentData['berkas'];
-                        if (file_exists($oldFilePath)) {
-                            unlink($oldFilePath);
-                        }
-                    }
-                    $fileName = handleFileUpload();
-                    $data['berkas'] = $fileName;
-                }
-
-                $result = $prestasi->updateData($id, $data);
-                if (!$result['status']) {
-                    throw new Exception($result['message']);
-                }
-
-                echo json_encode([
-                    'status' => true,
-                    'message' => $result['message']
-                ]);
-            } catch (Exception $e) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => $e->getMessage()
-                ]);
-            }
-            break;
-
         case 'validasi':
             // Ensure clean output buffer
             ob_clean();
@@ -428,6 +411,24 @@ try {
                     'message' => $e->getMessage()
                 ]);
             }
+            break;
+
+        case 'get_tingkat_lomba':
+            try {
+                $id_lomba = isset($_GET['id_lomba']) ? $_GET['id_lomba'] : null;
+                if (!$id_lomba) {
+                    throw new Exception('ID Lomba tidak valid');
+                }
+
+                $data = $prestasi->getTingkatLomba($id_lomba);
+                $response['status'] = true;
+                $response['data'] = $data;
+            } catch (Exception $e) {
+                error_log("Error in get_tingkat_lomba: " . $e->getMessage());
+                $response['status'] = false;
+                $response['message'] = $e->getMessage();
+            }
+            echo json_encode($response);
             break;
 
         default:
