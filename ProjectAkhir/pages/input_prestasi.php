@@ -53,7 +53,7 @@ $role = $session->get('role');
 
 <!-- Modal Form -->
 <div class="modal fade" id="form-data">
-    <form action="action/prestasiAction.php?act=save" method="post" id="tambahdata" enctype="multipart/form-data">
+    <form action="action/prestasiAction.php?act=save" method="post" id="formTambah" enctype="multipart/form-data">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -76,9 +76,30 @@ $role = $session->get('role');
                     </div>
                     <div class="form-group">
                         <label>Nama Lomba</label>
-                        <select class="form-control" name="id_lomba" id="id_lomba" required>
+                        <select class="form-control" id="id_lomba" name="id_lomba">
                             <option value="">Pilih Lomba</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox mb-2">
+                            <input type="checkbox" class="custom-control-input" id="customLombaCheck">
+                            <label class="custom-control-label" for="customLombaCheck">Lomba tidak ada dalam daftar?</label>
+                        </div>
+                    </div>
+                    <div id="customLombaForm" style="display: none;">
+                        <div class="form-group">
+                            <label>Nama Lomba Baru</label>
+                            <input type="text" class="form-control" id="custom_nama_lomba" name="custom_nama_lomba" placeholder="Masukkan nama lomba">
+                        </div>
+                        <div class="form-group">
+                            <label>Tingkat Lomba</label>
+                            <select class="form-control" id="custom_tingkat" name="custom_tingkat">
+                                <option value="">Pilih Tingkat</option>
+                                <option value="1">Nasional</option>
+                                <option value="2">Regional</option>
+                                <option value="3">Internasional</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Tingkat Lomba</label>
@@ -255,7 +276,7 @@ $role = $session->get('role');
                 if (response.status) {
                     var data = response.data;
                     $('#form-data').modal('show');
-                    $('#tambahdata').attr('action', 'action/prestasiAction.php?act=update&id=' + id);
+                    $('#formTambah').attr('action', 'action/prestasiAction.php?act=update&id=' + id);
                     
                     if (isAdmin) {
                         // Admin hanya bisa edit status validasi dan alasan
@@ -335,10 +356,10 @@ $role = $session->get('role');
     function tambahData() {
         $('#form-data').modal('show');
         $('.modal-title').text('Tambah Prestasi');
-        $('#tambahdata').attr('action', 'action/prestasiAction.php?act=save');
+        $('#formTambah').attr('action', 'action/prestasiAction.php?act=save');
         
         // Reset form
-        $('#tambahdata')[0].reset();
+        $('#formTambah')[0].reset();
         $('#status_lomba').val('in progress');
         $('#tingkat_lomba').val('');
 
@@ -379,40 +400,79 @@ $role = $session->get('role');
         loadLomba();
     }
 
+    function loadMahasiswa() {
+        var isAdmin = <?php echo isset($_SESSION['role']) && $_SESSION['role'] === 'admin' ? 'true' : 'false'; ?>;
+        
+        if (isAdmin) {
+            $.ajax({
+                url: 'action/prestasiAction.php?act=get_mahasiswa',
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var select = $('#nim');
+                    select.empty();
+                    select.append('<option value="">Pilih Mahasiswa</option>');
+                    
+                    if (Array.isArray(data)) {
+                        data.forEach(function(item) {
+                            select.append('<option value="' + item.nim + '">' + 
+                                item.nama_mhs + ' (' + item.nim + ')</option>');
+                        });
+                    } else {
+                        console.error('Invalid response format:', data);
+                    }
+                    select.show();
+                    $('#nim_text').hide();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    alert('Gagal mengambil data mahasiswa');
+                }
+            });
+        } else {
+            // If not admin, hide select and show text input with user's NIM
+            $('#nim').hide();
+            var userNim = '<?php echo isset($_SESSION['nim']) ? $_SESSION['nim'] : ''; ?>';
+            $('#nim_text').val(userNim).show();
+        }
+    }
+
+    function resetForm() {
+        $('#formTambah')[0].reset();
+        $('#nim').val('').trigger('change');
+        $('#nip').val('').trigger('change');
+        $('#id_lomba').val('').trigger('change');
+        $('#nama_lomba').val('');
+        $('#tanggal').val('');
+        $('#juara').val('');
+        $('#berkas').val('');
+        $('#status_validasi').val('0');
+        $('#alasan').val('');
+        $('#alasanGroup').hide();
+    }
+
     function loadDosen() {
         $.ajax({
             url: 'action/prestasiAction.php?act=get_dosen',
             method: 'GET',
             dataType: 'json',
-            success: function(result) {
+            success: function(data) {
                 var select = $('#nip');
                 select.empty();
                 select.append('<option value="">Pilih Dosen</option>');
                 
-                if (result && result.status && Array.isArray(result.data)) {
-                    result.data.forEach(function(item) {
-                        select.append($('<option>', {
-                            value: item.nip,
-                            text: item.nama_dosen
-                        }));
+                if (Array.isArray(data)) {
+                    data.forEach(function(item) {
+                        select.append('<option value="' + item.nip + '">' + 
+                            item.nama_dosen + '</option>');
                     });
                 } else {
-                    console.error('Error loading dosen:', result ? result.message : 'Invalid response format');
+                    console.error('Invalid response format:', data);
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX Error:', error);
-                console.error('Response Text:', xhr.responseText);
-                var errorMessage = 'Terjadi kesalahan saat mengambil data dosen';
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response && response.message) {
-                        errorMessage = response.message;
-                    }
-                } catch (e) {
-                    console.error('Error parsing error response:', e);
-                }
-                alert(errorMessage);
+                console.error('Error:', error);
+                alert('Gagal mengambil data dosen');
             }
         });
     }
@@ -577,19 +637,65 @@ $role = $session->get('role');
         // Load initial data
         loadDosen();
         loadLomba();
+        loadMahasiswa();
 
         // Event handlers
         $('#id_lomba').change(function() {
             var selectedOption = $(this).find('option:selected');
-            $('#tingkat_lomba').val(selectedOption.data('tingkat') || '');
+            if (selectedOption.length > 0) {
+                var namaLomba = selectedOption.text().split('(')[0].trim();
+                $('#nama_lomba').val(namaLomba);
+            }
         });
 
-        $('#status_validasi').change(toggleAlasan);
+        $('#status_validasi').change(function() {
+            var value = $(this).val();
+            if (value == '2') { // Tidak Valid
+                $('#alasanGroup').show();
+            } else {
+                $('#alasanGroup').hide();
+                $('#alasan').val('');
+            }
+        });
 
-        $('#tambahdata').submit(function(e) {
+        // Modal events
+        $('#form-data').on('show.bs.modal', function() {
+            resetForm();
+            loadDosen();
+            loadLomba();
+            loadMahasiswa();
+        });
+
+        $('#customLombaCheck').change(function() {
+            if ($(this).is(':checked')) {
+                $('#id_lomba').prop('disabled', true);
+                $('#customLombaForm').show();
+            } else {
+                $('#id_lomba').prop('disabled', false);
+                $('#customLombaForm').hide();
+                $('#custom_nama_lomba').val('');
+                $('#custom_tingkat').val('');
+            }
+        });
+
+        $('#formTambah').submit(function(e) {
             e.preventDefault();
             
             var formData = new FormData(this);
+            
+            // Add custom lomba data if checkbox is checked
+            if ($('#customLombaCheck').is(':checked')) {
+                formData.append('is_custom_lomba', '1');
+                formData.append('custom_nama_lomba', $('#custom_nama_lomba').val());
+                formData.append('custom_tingkat', $('#custom_tingkat').val());
+            }
+
+            // Add required fields
+            formData.append('id_lomba', $('#id_lomba').val());
+            formData.append('tanggal', $('#tanggal').val());
+            formData.append('peringkat', $('#peringkat').val());
+            formData.append('status_validasi', $('#status_validasi').val() || '0'); // Default to 0 if not set
+            formData.append('status_lomba', $('#status_lomba').val());
             
             $.ajax({
                 url: $(this).attr('action'),
@@ -599,24 +705,19 @@ $role = $session->get('role');
                 contentType: false,
                 dataType: 'json',
                 success: function(response) {
-                    alert(response.message);
                     if (response.status) {
                         $('#form-data').modal('hide');
                         tabledata.ajax.reload();
+                        Swal.fire('Sukses', response.message, 'success');
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error:', error);
-                    alert('Terjadi kesalahan saat menyimpan data');
+                    console.error(xhr.responseText);
+                    Swal.fire('Error', 'Terjadi kesalahan saat menyimpan data', 'error');
                 }
             });
-        });
-
-        $('#form-data').on('show.bs.modal', function(e) {
-            resetForm();
-            loadMahasiswa();
-            loadDosen();
-            loadLomba();
         });
     });
 </script>
