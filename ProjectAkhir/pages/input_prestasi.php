@@ -350,15 +350,21 @@ $role = $session->get('role');
             $('#status_validasi, #alasan').prop('disabled', false);
             $.ajax({
                 url: 'action/prestasiAction.php?act=get_mahasiswa',
-                method: 'get',
-                success: function(response) {
-                    var data = JSON.parse(response);
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
                     var select = $('#nim');
                     select.empty();
                     select.append('<option value="">Pilih Mahasiswa</option>');
                     data.forEach(function(item) {
                         select.append('<option value="' + item.nim + '">' + item.nama_mhs + ' (' + item.nim + ')</option>');
                     });
+                    select.show();
+                    $('#nim_text').hide();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    alert('Gagal mengambil data mahasiswa');
                 }
             });
         } else {
@@ -416,35 +422,23 @@ $role = $session->get('role');
             url: 'action/prestasiAction.php?act=get_lomba',
             method: 'GET',
             dataType: 'json',
-            success: function(result) {
+            success: function(data) {
                 var select = $('#id_lomba');
                 select.empty();
                 select.append('<option value="">Pilih Lomba</option>');
                 
-                if (result && result.status && Array.isArray(result.data)) {
-                    result.data.forEach(function(item) {
-                        select.append($('<option>', {
-                            value: item.id_lomba,
-                            text: item.nama_lomba
-                        }));
+                if (Array.isArray(data)) {
+                    data.forEach(function(item) {
+                        select.append('<option value="' + item.id_lomba + '">' + 
+                            item.nama_lomba + ' (' + item.nama_tingkat + ')</option>');
                     });
                 } else {
-                    console.error('Error loading lomba:', result ? result.message : 'Invalid response format');
+                    console.error('Invalid response format:', data);
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX Error:', error);
-                console.error('Response Text:', xhr.responseText);
-                var errorMessage = 'Terjadi kesalahan saat mengambil data lomba';
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response && response.message) {
-                        errorMessage = response.message;
-                    }
-                } catch (e) {
-                    console.error('Error parsing error response:', e);
-                }
-                alert(errorMessage);
+                console.error('Error:', error);
+                alert('Gagal mengambil data lomba');
             }
         });
     }
@@ -616,6 +610,13 @@ $role = $session->get('role');
                     alert('Terjadi kesalahan saat menyimpan data');
                 }
             });
+        });
+
+        $('#form-data').on('show.bs.modal', function(e) {
+            resetForm();
+            loadMahasiswa();
+            loadDosen();
+            loadLomba();
         });
     });
 </script>

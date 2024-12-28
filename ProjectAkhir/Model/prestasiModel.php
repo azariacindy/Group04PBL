@@ -375,14 +375,43 @@ class PrestasiModel extends Model
         }
     }
 
-    public function getAllMahasiswa() {
+    public function getAllLombaNew() {
         try {
-            $query = "SELECT nim, nama_mhs FROM [mahasiswa] ORDER BY nama_mhs";
-            $stmt = sqlsrv_query($this->db, $query);
+            $sql = "SELECT l.id_lomba, l.nama_lomba, t.nama_tingkat 
+                    FROM [lomba] l
+                    LEFT JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat
+                    ORDER BY l.nama_lomba ASC";
+            
+            $stmt = sqlsrv_query($this->db, $sql);
             if ($stmt === false) {
-                throw new Exception(print_r(sqlsrv_errors(), true));
+                throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
             }
-            return $stmt;
+            
+            $result = array();
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $result[] = $row;
+            }
+            return $result;
+        } catch (Exception $e) {
+            error_log("Error in getAllLomba: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function getAllMahasiswa()
+    {
+        try {
+            $sql = "SELECT nim, nama_mhs FROM [mahasiswa] ORDER BY nama_mhs ASC";
+            $stmt = sqlsrv_query($this->db, $sql);
+            if ($stmt === false) {
+                throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+            }
+            
+            $result = array();
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $result[] = $row;
+            }
+            return $result;
         } catch (Exception $e) {
             throw new Exception('Gagal mengambil data mahasiswa: ' . $e->getMessage());
         }

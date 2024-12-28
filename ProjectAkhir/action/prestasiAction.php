@@ -532,20 +532,12 @@ try {
 
     if ($act == 'get_mahasiswa') {
         try {
-            $stmt = $prestasi->getAllMahasiswa();
-            $result = [];
-            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-                $result[] = [
-                    'nim' => $row['nim'],
-                    'nama_mhs' => $row['nama_mhs']
-                ];
-            }
-            echo json_encode($result);
+            $mahasiswa = $prestasi->getAllMahasiswa();
+            header('Content-Type: application/json');
+            echo json_encode($mahasiswa);
         } catch (Exception $e) {
-            echo json_encode([
-                'status' => false,
-                'message' => $e->getMessage()
-            ]);
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()]);
         }
         exit;
     }
