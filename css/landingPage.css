@@ -1,117 +1,240 @@
 body {
-    background-color: rgb(66, 60, 60);
-    display: flex;             /* Menggunakan flexbox untuk layout */
-    flex-direction: column;    /* Atur layout menjadi kolom agar button dan wrapper bisa berurutan secara vertikal */
-    justify-content: center;   /* Memusatkan secara vertikal */
-    align-items: center;       /* Memusatkan secara horizontal */
-    height: 100vh;             /* Mengambil tinggi seluruh viewport */
-    margin: 0;                 /* Menghilangkan margin default pada body */
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: #000000;
 }
 
-nav{
-    width: 100%;
+.container {
+    width: 90%;
+    margin: auto;
+    max-width: 1200px;
+}
+
+header {
+    background: #323484;
+    color: #fff;
+    padding: 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header .logo img {
+    height: 50px;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+nav ul li {
+    margin-right: 20px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.hero {
+    background: #323484;
+    text-align: left;
+    padding: 100px 0;
+}
+
+.hero h1 {
+    font-size: 36px;
+    line-height: 1.5;
+    color: #ffffff;
+}
+
+.hero h1 .highlight {
+    color: #17A1FA;
+}
+
+.hero p {
+    font-size: 18px;
+    margin: 20px 0;
+}
+
+.hero .container {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 50px;          /* Jarak antar item menu */
-    height: 80px;
-    background-color: #545454;   /* Warna latar navbar */
-    position: fixed;          /* Agar navbar tetap di atas saat di-scroll */
-    top: 0;                   /* Memastikan navbar berada di bagian paling atas */
-    left: 0;
-    z-index: 1000;            /* Agar berada di atas konten lainnya */
-    padding: 0 20px;          /* Tambah padding di kiri dan kanan */
-    box-shadow: 0 2px 10px rgb(255, 217, 0);  /* Memberi bayangan pada navbar */
+    justify-content: space-between;
 }
 
-.Wrapper {
-    background-color: rgb(255, 255, 255);
-    display: flex;
-    width: 750px;
-    height: fit-content;
-    border-radius: 15px;
-    overflow: hidden;
-    justify-content: center;
-    align-items: center;
-    gap: 40px;  /* Menambahkan jarak antar gambar */
-}
-
-.image1, .image2, .image3 {
-    width: 100%;
-    height: 120px;
-    max-width: 200px;
-    filter: grayscale(100%);
-}
-
-.card {
+.text-content {
     flex: 1;
-    height: 100%;
-    transition: flex-grow 0.5s ease, transform 0.5s ease; /* Menambah efek transform */
-    cursor: pointer;
-    overflow: hidden;
+    margin-right: 20px;
 }
 
-.card img {
+.image-content {
+    flex: 1;
+    text-align: center;
+}
+
+.image-content img {
     max-width: 100%;
-    max-height: 100%;
-    width: auto;  /* Gambar akan menyesuaikan secara otomatis */
-    height: auto;  /* Agar gambar tetap proporsional */
+    height: auto;
+    position: relative; left: -0px;
 }
 
-.card:hover {
-    flex-grow: 3;  /* Membuat elemen yang di-hover lebih besar */
-    transform: scale(1.1); /* Membuat gambar sedikit lebih besar */
-    filter: grayscale(0);
-}
-
-button {
-    background-color: #000000; /* Warna dasar biru */
-    color: white;
-    padding: 20px 30px;
-    border: none;
+.btn {
+    display: inline-block;
+    background: #17A1FA;
+    color: #fff;
+    padding: 12px 20px;
     border-radius: 5px;
-    cursor: pointer;
-    font-size: bold 20px;
-    margin-top: 20px;  /* Tambah jarak antara button dan Wrapper */
+    text-decoration: none;
+    font-size: 16px;
+    transition: background 0.3s;
 }
 
-button:hover {
-    background-color: #ffffff; /* Ubah warna latar saat dihover */
-    color: #000000;            /* Ubah warna teks saat dihover */
-    box-shadow: 0 3px 10px 0 rgb(255, 255, 255), 0 3px 3px 0 rgb(0, 0, 0);
-    
+.btn:hover {
+    background: #5abdff;
 }
 
-.button:active {
-    background-color: #ffff00;
-    box-shadow: 0 5px #baab05;
-    transform: translateY(4px);
+.features {
+    padding: 50px 0;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
 }
 
-a {
+.features h2 {
+    font-size: 28px;
+    margin-bottom: 30px;
+}
+
+.feature-cards {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.feature-card {
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 1  0px;
+    border-radius: 8px;
+    grid: 1 1 30%;
+    margin: 10px;
+    text-align: center;
+}
+
+.feature-card img {
+    width: 80px;
+    margin-bottom: 20px;
+}
+
+footer {
+    background: #323484;
+    color: #fff;
+    text-align: center;
+    padding: 15px 0;
+}
+
+.achievement {
+    background: #fff;
+    max-width: 90%;
+    border-radius: 24px;
+    justify-content: center;
+    padding: 50px;
+    margin: 90px auto;
+}
+
+.achievement h2 {
+    text-align: left;
+    color: #333;
+}
+
+.achievement .highlight {
+    color: #007bff;
+}
+
+.achievement p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.achievement-list {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+}
+
+.achievement-items {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 15px; 
+}
+
+
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1s ease-out, transform 1s ease-out;
+}
+
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.image-slider {
     position: relative;
-    cursor: pointer;
-    color: white;
-    font-size: 22px;
-    padding: 0.5rem 1rem;
-    text-decoration: none;  /* Agar link tidak memiliki garis bawah */
+    max-width: 600px;
+    margin: 30px auto;
+    overflow: hidden;
+    transform: translateY(-280px); /* Geser ke atas dengan nilai negatif */
 }
 
-a::after {
-    position: absolute;
-    content: "";
-    inset: 0;
-    background-color: #ffffff;
-    scale: 1 0;
-    z-index: -1;
-    transition: 0.45s;
+
+.slide {
+    display: none;
+    text-align: center;
+}
+
+.slide img {
+    width: 100%;
     border-radius: 10px;
 }
 
-a:hover {
-    color: black;  /* Ubah warna teks saat hover */
+button.prev, button.next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
 }
 
-a:hover::after {
-    scale: 1 1;  /* Menambah efek pada hover */
+button.prev:hover {
+    background-color: #ffffff; /* Ubah warna latar saat dihover */
+    color: #000000;            /* Ubah warna teks saat dihover */
+}
+button.next:hover {
+    background-color: #ffffff; /* Ubah warna latar saat dihover */
+    color: #000000;            /* Ubah warna teks saat dihover */
+}
+
+button.prev {
+    left: 10px;
+}
+
+button.next {
+    right: 10px;
 }
