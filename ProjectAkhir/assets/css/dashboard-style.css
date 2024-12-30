@@ -1,0 +1,553 @@
+/* Import Google Font - Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+.content-wrapper {
+    background-color: #f4f6f9;
+    padding: 20px;
+}
+
+.welcome-title {
+    font-size: clamp(20px, 4vw, 24px);
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+/* Dashboard Boxes */
+.dashboard-box {
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    position: relative;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+}
+
+.bg-mint {
+    background-color: #E8F5E9;
+}
+
+.bg-sky {
+    background-color: #E3F2FD;
+}
+
+.bg-lavender {
+    background-color: #F3E5F5;
+}
+
+.bg-peach {
+    background-color: #FFF3E0;
+}
+
+.box-content {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.box-content h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.box-content p {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.box-icon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 0;
+}
+
+.box-icon img {
+    width: 40px;
+    height: auto;
+}
+
+.box-btn {
+    position: absolute;
+    bottom: 15px;
+    left: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+}
+
+.box-map {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.box-map img {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border-radius: 8px;
+}
+
+.box-btn {
+    display: inline-block;
+    padding: 8px 20px;
+    background: #2196F3;
+    color: white;
+    border-radius: 6px;
+    font-size: 13px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.box-btn:hover {
+    background: #1976D2;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-add {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 28px;
+    height: 28px;
+    z-index: 1;
+    border-radius: 6px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-add:hover {
+    background: #43A047;
+}
+
+/* Trophy Container */
+.trophy-container {
+    text-align: center;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease;
+}
+
+.trophy-container:hover {
+    transform: scale(1.05);
+}
+
+.trophy-image {
+    width: clamp(80px, 15vw, 100px);
+    height: auto;
+}
+
+/* Competition Header */
+.competition-header, .guidance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.medal-image, .teacher-image {
+    width: clamp(36px, 8vw, 48px);
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+.medal-image:hover, .teacher-image:hover {
+    transform: scale(1.1);
+}
+
+/* Buttons */
+.btn-custom {
+    display: inline-block;
+    padding: clamp(6px, 2vw, 8px) clamp(16px, 4vw, 20px);
+    background: #2196F3;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: clamp(13px, 2vw, 14px);
+    transition: all 0.3s ease;
+    text-align: center;
+    width: fit-content;
+}
+
+.btn-custom:hover {
+    background: #1976D2;
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+/* Responsive Grid */
+@media (max-width: 1200px) {
+    .container-fluid {
+        padding: 0 15px;
+    }
+}
+
+@media (max-width: 992px) {
+    .dashboard-box {
+        margin-bottom: 15px;
+    }
+    
+    .content-wrapper {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .row {
+        margin: 0 -10px;
+    }
+    
+    .col-md-4 {
+        padding: 0 10px;
+    }
+
+    .dashboard-box {
+        margin-bottom: 20px;
+    }
+
+    .box-content h4 {
+        font-size: 16px;
+    }
+
+    .box-content p {
+        font-size: 13px;
+        margin-bottom: 15px;
+    }
+
+    .btn-custom {
+        width: 100%;
+        padding: 8px 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .content-wrapper {
+        padding: 10px;
+    }
+
+    .welcome-title {
+        font-size: 20px;
+    }
+
+    .dashboard-box {
+        padding: 16px;
+    }
+
+    .trophy-container {
+        margin-bottom: 15px;
+    }
+
+    .trophy-image {
+        width: 70px;
+    }
+
+    .medal-image, .teacher-image {
+        width: 32px;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-box {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.dashboard-box:nth-child(1) { animation-delay: 0.1s; }
+.dashboard-box:nth-child(2) { animation-delay: 0.2s; }
+.dashboard-box:nth-child(3) { animation-delay: 0.3s; }
+
+/* Admin Dashboard Cards */
+.admin-card {
+    background: #00B0FF;
+    border-radius: 15px;
+    padding: 25px;
+    height: 100%;
+    min-height: 250px;
+    position: relative;
+    color: white;
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-card:hover {
+    transform: translateY(-5px);
+}
+
+.admin-card h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: white;
+}
+
+.admin-card p {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 20px;
+}
+
+.admin-card img {
+    width: 120px;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+.admin-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: auto;
+}
+
+.admin-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+/* Student Dashboard Cards */
+.student-card {
+    background: #00B0FF;
+    border-radius: 15px;
+    padding: 20px;
+    height: 100%;
+    min-height: 160px;
+    color: white;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.student-card img {
+    width: 60px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.student-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 6px;
+}
+
+.student-card p {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-bottom: 12px;
+}
+
+.student-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+
+.student-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+/* Statistics Section */
+.admin-stats {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-top: 30px;
+}
+
+.admin-stats h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.admin-stats .year {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+/* Sidebar Styles */
+.main-sidebar {
+    background: #3F51B5;
+    color: white;
+}
+
+.brand-link {
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand-link img {
+    max-width: 60px;
+    margin-bottom: 10px;
+}
+
+.brand-text {
+    display: block;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.nav-sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    padding: 12px 20px;
+    margin: 4px 0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.nav-sidebar .nav-link:hover,
+.nav-sidebar .nav-link.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Navbar Styles */
+.navbar-light {
+    background: white !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Styles */
+.btn-tool {
+    color: white !important;
+}
+
+.btn-tool:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Content Header */
+.content-header {
+    padding: 15px 0.5rem;
+}
+
+.breadcrumb-item a {
+    color: #667eea;
+}
+
+/* Custom Card Colors */
+.bg-gradient-info {
+    background: linear-gradient(135deg, #0093E9 0%, #80D0C7 100%);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Footer */
+.main-footer {
+    background: white;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+    color: #6c757d;
+}
+
+/* Custom Text Colors */
+.text-primary {
+    color: #667eea !important;
+}
+
+.text-success {
+    color: #48c6ef !important;
+}
+
+/* DataTables Customization */
+.dataTables_wrapper {
+    padding: 1rem;
+}
+
+.table {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+/* Logout Button */
+.logout-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: calc(100% - 40px);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Row spacing */
+.row {
+    margin: 0 -10px;
+}
+
+.col-lg-4 {
+    padding: 0 10px;
+}

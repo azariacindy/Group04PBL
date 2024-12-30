@@ -47,6 +47,13 @@ try {
                 // Get data based on role
                 if ($role == 'admin') {
                     $stmt = $prestasi->getAllData();
+                } elseif ($role == 'dosen') {
+                    // Get NIP for current user
+                    $nip = $prestasi->getNipFromUsername($session->get('user'));
+                    if (!$nip) {
+                        throw new Exception('NIP tidak ditemukan untuk user: ' . $session->get('user'));
+                    }
+                    $stmt = $prestasi->getDataByNipUser($nip);
                 } else {
                     // Get NIM for current user
                     $nim = $prestasi->getNimFromUsername($session->get('user'));
@@ -71,6 +78,11 @@ try {
                         // Admin bisa edit dan hapus semua data
                         $buttons = '<button onclick="editData(' . $row['id_prestasi'] . ')" class="btn btn-warning btn-sm mr-1"><i class="fas fa-edit"></i> Edit</button>';
                         $buttons .= '<button onclick="deleteData(' . $row['id_prestasi'] . ')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Hapus</button>';
+                    } elseif ($role == 'dosen') {
+                        // Dosen bisa validasi jika status_validasi = 0
+                        if ($row['status_validasi'] == 0) {
+                            $buttons = '<button onclick="validasi(' . $row['id_prestasi'] . ')" class="btn btn-primary btn-sm"><i class="fas fa-check"></i> Validasi</button>';
+                        }
                     } else {
                         // Mahasiswa hanya bisa edit/hapus jika belum divalidasi (status_validasi = 0)
                         if ($row['status_validasi'] == 0) {
@@ -87,10 +99,9 @@ try {
                     $row['nama_tingkat'] = isset($row['nama_tingkat']) ? $row['nama_tingkat'] : '';
                     $row['detail_lomba'] = isset($row['detail_lomba']) ? $row['detail_lomba'] : '';
                     $row['peringkat'] = isset($row['peringkat']) ? $row['peringkat'] : '';
-                    $row['status_lomba'] = isset($row['status_lomba']) ? $row['status_lomba'] : '';
                     $row['status_validasi'] = isset($row['status_validasi']) ? (int)$row['status_validasi'] : 0;
                     $row['alasan_validasi'] = isset($row['alasan_validasi']) ? $row['alasan_validasi'] : '';
-                    $row['action_buttons'] = $buttons;
+                    $row['action'] = $buttons;
                     
                     $data[] = $row;
                 }

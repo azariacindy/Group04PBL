@@ -31,17 +31,27 @@ $role = $session->get('role');
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>Nama Mahasiswa</th>
-                        <th>Nama Dosen</th>
-                        <th>Nama Lomba</th>
-                        <th>Tingkat</th>
-                        <th>Tanggal</th>
-                        <th>Detail Lomba</th>
-                        <th>Berkas</th>
-                        <th>Peringkat</th>
-                        <th>Aksi</th>
-                        <th>Status Lomba</th>
-                        <th>Status Validasi</th>
+                        <?php if ($role == 'dosen'): ?>
+                            <th>Nama Dosen</th>
+                            <th>Nama Mahasiswa</th>
+                            <th>Nama Lomba</th>
+                            <th>Tingkat</th>
+                            <th>Tanggal</th>
+                            <th>Detail Lomba</th>
+                            <th>Berkas</th>
+                            <th>Peringkat</th>
+                        <?php else: ?>
+                            <th>Nama Mahasiswa</th>
+                            <th>Nama Dosen</th>
+                            <th>Nama Lomba</th>
+                            <th>Tingkat</th>
+                            <th>Tanggal</th>
+                            <th>Detail Lomba</th>
+                            <th>Berkas</th>
+                            <th>Peringkat</th>
+                            <th>Aksi</th>
+                            <th>Status Validasi</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
@@ -69,13 +79,13 @@ $role = $session->get('role');
                             <option value="">Pilih Mahasiswa</option>
                         </select>
                         <?php else: ?>
-                        <input type="text" class="form-control" id="nim_text" readonly>
+                        <input type="text" class="form-control" id="nim_text" name="nim" readonly>
                         <?php endif; ?>
                     </div>
                     <div class="form-group">
-                        <label>NIP Dosen</label>
+                        <label>Dosen Pembimbing</label>
                         <select class="form-control" name="nip" id="nip" required>
-                            <option value="">Pilih Dosen</option>
+                            <option value="">Pilih Dosen Pembimbing</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -125,13 +135,6 @@ $role = $session->get('role');
                         <label>Peringkat</label>
                         <input type="text" class="form-control" name="peringkat" id="peringkat" placeholder="Contoh: Juara 1, Juara Harapan 1" required>
                     </div>
-                    <div class="form-group">
-                        <label>Status Lomba</label>
-                        <select class="form-control" name="status_lomba" id="status_lomba" required>
-                            <option value="in progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
                     <?php if ($role == 'admin'): ?>
                     <div class="form-group">
                         <label>Status Validasi (Poin SKKM)</label>
@@ -161,6 +164,7 @@ $role = $session->get('role');
 <script>
     var tabledata;
     var isAdmin = <?php echo json_encode($role == 'admin'); ?>;
+    var isDosen = <?php echo json_encode($role == 'dosen'); ?>;
 
     // Function to load tingkat lomba based on id_lomba
     function loadTingkatLomba(id_lomba) {
@@ -196,7 +200,7 @@ $role = $session->get('role');
     function checkBerkas() {
         var berkas = $('#berkas').val();
         if (!berkas) {
-            $('#status_lomba').val('in progress');
+            // Removed the line that updated status_lomba
         }
     }
 
@@ -322,7 +326,6 @@ $role = $session->get('role');
                     $('#tanggal').val(response.data.tanggal);
                     $('#detail_lomba').val(response.data.detail_lomba);
                     $('#peringkat').val(response.data.peringkat);
-                    $('#status_lomba').val(response.data.status_lomba);
                     
                     // Handle file field
                     if (response.data.berkas) {
@@ -392,50 +395,71 @@ $role = $session->get('role');
     }
 
     function tambahData() {
+        // Show modal
         $('#form-data').modal('show');
-        $('.modal-title').text('Tambah Prestasi');
-        $('#formTambah').attr('action', 'action/prestasiAction.php?act=save');
         
         // Reset form
         $('#formTambah')[0].reset();
-        $('#status_lomba').val('in progress');
         $('#tingkat_lomba').val('');
+
+        // Load dosen list for all users
+        loadDosen();
 
         if (isAdmin) {
             $('#nim').prop('disabled', false).show();
-            $('#nim_text').hide();
-            $('#nip, #id_lomba, #tanggal, #detail_lomba, #berkas, #peringkat, #status_lomba').prop('disabled', false);
-            $('#status_validasi').val(0);
-            $('#status_validasi, #alasan').prop('disabled', false);
-            $.ajax({
-                url: 'action/prestasiAction.php?act=get_mahasiswa',
-                method: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    var select = $('#nim');
-                    select.empty();
-                    select.append('<option value="">Pilih Mahasiswa</option>');
-                    data.forEach(function(item) {
-                        select.append('<option value="' + item.nim + '">' + item.nama_mhs + ' (' + item.nim + ')</option>');
-                    });
-                    select.show();
-                    $('#nim_text').hide();
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error:', error);
-                    alert('Gagal mengambil data mahasiswa');
-                }
-            });
+            $('#nip').prop('disabled', false);
+            $('.nim-group').show();
+            $('.nip-group').show();
         } else {
-            $('#nim').prop('disabled', true).hide();
-            $('#nim_text').val($('#nim').val()).show();
-            $('#nip, #id_lomba, #tanggal, #detail_lomba, #berkas, #peringkat, #status_lomba').prop('disabled', false);
-            $('#status_validasi').val(0);
-            $('#status_validasi, #alasan').prop('disabled', true);
+            if (isDosen) {
+                $('.nim-group').show();
+                $('.nip-group').hide();
+                // Set current dosen's NIP
+                var currentNip = '<?php echo isset($_SESSION["nip"]) ? $_SESSION["nip"] : ""; ?>';
+                $('#nip').val(currentNip).prop('disabled', true);
+            } else {
+                // For mahasiswa
+                $('.nim-group').hide();
+                $('.nip-group').show();
+                $('#nip').prop('disabled', false); // Enable NIP selection for students
+                var userNim = '<?php echo isset($_SESSION["nim"]) ? $_SESSION["nim"] : ""; ?>';
+                $('#nim_text').val(userNim).show();
+            }
         }
-        
-        loadDosen();
-        loadLomba();
+    }
+
+    function loadDosen() {
+        $.ajax({
+            url: 'action/prestasiAction.php?act=get_dosen',
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var select = $('#nip');
+                select.empty();
+                select.append('<option value="">Pilih Dosen Pembimbing</option>');
+                
+                if (Array.isArray(data)) {
+                    data.forEach(function(item) {
+                        select.append('<option value="' + item.nip + '">' + 
+                            item.nama_dosen + ' - ' + item.nip + '</option>');
+                    });
+                } else {
+                    console.error('Invalid response format:', data);
+                }
+
+                // If user is dosen, set their NIP
+                if (isDosen) {
+                    var currentNip = '<?php echo isset($_SESSION["nip"]) ? $_SESSION["nip"] : ""; ?>';
+                    if (currentNip) {
+                        select.val(currentNip);
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+                alert('Gagal mengambil data dosen');
+            }
+        });
     }
 
     function loadMahasiswa() {
@@ -475,46 +499,6 @@ $role = $session->get('role');
         }
     }
 
-    function resetForm() {
-        $('#formTambah')[0].reset();
-        $('#nim').val('').trigger('change');
-        $('#nip').val('').trigger('change');
-        $('#id_lomba').val('').trigger('change');
-        $('#nama_lomba').val('');
-        $('#tanggal').val('');
-        $('#juara').val('');
-        $('#berkas').val('');
-        $('#status_validasi').val('0');
-        $('#alasan').val('');
-        $('#alasanGroup').hide();
-    }
-
-    function loadDosen() {
-        $.ajax({
-            url: 'action/prestasiAction.php?act=get_dosen',
-            method: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                var select = $('#nip');
-                select.empty();
-                select.append('<option value="">Pilih Dosen</option>');
-                
-                if (Array.isArray(data)) {
-                    data.forEach(function(item) {
-                        select.append('<option value="' + item.nip + '">' + 
-                            item.nama_dosen + '</option>');
-                    });
-                } else {
-                    console.error('Invalid response format:', data);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error:', error);
-                alert('Gagal mengambil data dosen');
-            }
-        });
-    }
-
     function loadLomba() {
         $.ajax({
             url: 'action/prestasiAction.php?act=get_lomba',
@@ -541,6 +525,24 @@ $role = $session->get('role');
         });
     }
     
+    function resetForm() {
+        $('#formTambah')[0].reset();
+        $('#nim').val('').trigger('change');
+        $('#nip').val('').trigger('change');
+        $('#id_lomba').val('').trigger('change');
+        $('#custom_nama_lomba').val('');
+        $('#custom_tingkat').val('');
+        $('#tanggal').val('');
+        $('#detail_lomba').val('');
+        $('#berkas').val('');
+        $('#peringkat').val('');
+        $('#status_validasi').val('0');
+        $('#alasan').val('');
+        $('#alasan_group').hide();
+        $('#customLombaCheck').prop('checked', false);
+        $('#customLombaForm').hide();
+    }
+
     $(document).ready(function() {
         // DataTable initialization
         tabledata = $('#table_data').DataTable({
@@ -548,113 +550,111 @@ $role = $session->get('role');
             "serverSide": false,
             "ajax": {
                 "url": "action/prestasiAction.php?act=load",
-                "type": "POST",
-                "dataSrc": function(json) {
-                    if (json.error) {
-                        alert(json.error);
-                        return [];
-                    }
-                    return json.data;
-                }
+                "type": "POST"
             },
             "columns": [
                 { "data": "no" },
-                { "data": "nama_mhs" },
-                { "data": "nama_dosen" },
-                { "data": "nama_lomba" },
-                { "data": "nama_tingkat" },
-                { "data": "tanggal" },
-                { "data": "detail_lomba" },
-                { 
-                    "data": "berkas",
-                    "render": function(data, type, row) {
-                        if (data) {
-                            return '<a href="uploads/' + data + '" target="_blank">' + data + '</a>';
+                <?php if ($role == 'dosen'): ?>
+                    { "data": "nama_dosen" },
+                    { "data": "nama_mhs" },
+                    { "data": "nama_lomba" },
+                    { "data": "nama_tingkat" },
+                    { "data": "tanggal" },
+                    { "data": "detail_lomba" },
+                    { 
+                        "data": "berkas",
+                        "render": function(data, type, row) {
+                            if (data) {
+                                return '<a href="uploads/' + data + '" target="_blank">' + data + '</a>';
+                            }
+                            return '';
                         }
-                        return '';
+                    },
+                    { "data": "peringkat" }
+                <?php else: ?>
+                    { "data": "nama_mhs" },
+                    { "data": "nama_dosen" },
+                    { "data": "nama_lomba" },
+                    { "data": "nama_tingkat" },
+                    { "data": "tanggal" },
+                    { "data": "detail_lomba" },
+                    { 
+                        "data": "berkas",
+                        "render": function(data, type, row) {
+                            if (data) {
+                                return '<a href="uploads/' + data + '" target="_blank">' + data + '</a>';
+                            }
+                            return '';
+                        }
+                    },
+                    { "data": "peringkat" },
+                    { 
+                        "data": null,
+                        "render": function(data, type, row) {
+                            var buttons = '';
+                            
+                            if (!isAdmin && row.status_validasi == 0) {
+                                buttons += '<button onclick="editData(' + row.id_prestasi + ')" class="btn btn-warning btn-sm mr-1"><i class="fas fa-edit"></i> Edit</button>';
+                            }
+                            
+                            if (isAdmin || row.status_validasi == 0) {
+                                buttons += '<button onclick="deleteData(' + row.id_prestasi + ')" class="btn btn-danger btn-sm mr-1"><i class="fas fa-trash"></i> Hapus</button>';
+                            }
+                            
+                            if (isAdmin && row.status_validasi != 1) {
+                                buttons += '<button onclick="validasiPrestasi(' + row.id_prestasi + ')" class="btn btn-info btn-sm"><i class="fas fa-check"></i> Validasi</button>';
+                            }
+                            
+                            return buttons;
+                        }
+                    },
+                    { 
+                        "data": null,
+                        "render": function(data, type, row) { 
+                            var status = '';
+                            var badgeClass = '';
+                            var statusText = '';
+                            
+                            switch(parseInt(data.status_validasi)) {
+                                case 0:
+                                    badgeClass = 'danger';
+                                    statusText = 'Ditolak';
+                                    break;
+                                case 1:
+                                    badgeClass = 'success';
+                                    statusText = 'SKKM Point 1';
+                                    break;
+                                case 2:
+                                    badgeClass = 'success';
+                                    statusText = 'SKKM Point 2';
+                                    break;
+                                case 3:
+                                    badgeClass = 'success';
+                                    statusText = 'SKKM Point 3';
+                                    break;
+                                default:
+                                    badgeClass = 'warning';
+                                    statusText = 'Belum Divalidasi';
+                            }
+                            
+                            status = '<span class="badge badge-' + badgeClass + '">' + statusText + '</span>';
+                            
+                            if (parseInt(data.status_validasi) === 0 && data.alasan) {
+                                var escapedAlasan = data.alasan.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                                status += '<br><button class="btn btn-sm btn-info mt-1 show-alasan" data-alasan="' + escapedAlasan + '">Lihat Alasan</button>';
+                            }
+                            return status;
+                        }
                     }
-                },
-                { "data": "peringkat" },
-                { 
-                    "data": null,
-                    "render": function(data, type, row) {
-                        var buttons = '';
-                        
-                        if (!isAdmin && row.status_validasi == 0) {
-                            buttons += '<button onclick="editData(' + row.id_prestasi + ')" class="btn btn-warning btn-sm mr-1"><i class="fas fa-edit"></i> Edit</button>';
-                        }
-                        
-                        if (isAdmin || row.status_validasi == 0) {
-                            buttons += '<button onclick="deleteData(' + row.id_prestasi + ')" class="btn btn-danger btn-sm mr-1"><i class="fas fa-trash"></i> Hapus</button>';
-                        }
-                        
-                        if (isAdmin && row.status_validasi != 1) {
-                            buttons += '<button onclick="validasiPrestasi(' + row.id_prestasi + ')" class="btn btn-info btn-sm"><i class="fas fa-check"></i> Validasi</button>';
-                        }
-                        
-                        return buttons;
-                    }
-                },
-                { 
-                    "data": "status_lomba",
-                    "render": function(data, type, row) {
-                        if (data === 'completed') {
-                            return '<span class="badge badge-success">Completed</span>';
-                        } else if (data === 'in progress') {
-                            return '<span class="badge badge-warning">In Progress</span>';
-                        }
-                        return data;
-                    }
-                },
-                { 
-                    "data": null,
-                    "render": function(data, type, row) { 
-                        var status = '';
-                        var badgeClass = '';
-                        var statusText = '';
-                        
-                        switch(parseInt(data.status_validasi)) {
-                            case 0:
-                                badgeClass = 'danger';
-                                statusText = 'Ditolak';
-                                break;
-                            case 1:
-                                badgeClass = 'success';
-                                statusText = 'SKKM Point 1';
-                                break;
-                            case 2:
-                                badgeClass = 'success';
-                                statusText = 'SKKM Point 2';
-                                break;
-                            case 3:
-                                badgeClass = 'success';
-                                statusText = 'SKKM Point 3';
-                                break;
-                            default:
-                                badgeClass = 'warning';
-                                statusText = 'Belum Divalidasi';
-                        }
-                        
-                        status = '<span class="badge badge-' + badgeClass + '">' + statusText + '</span>';
-                        
-                        if (parseInt(data.status_validasi) === 0 && data.alasan) {
-                            var escapedAlasan = data.alasan.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                            status += '<br><button class="btn btn-sm btn-info mt-1 show-alasan" data-alasan="' + escapedAlasan + '">Lihat Alasan</button>';
-                        }
-                        
-                        return status;
-                    }
-                }
+                <?php endif; ?>
             ],
             "order": [[0, 'asc']],
             "language": {
                 "emptyTable": "Tidak ada data yang tersedia",
                 "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
                 "infoEmpty": "Menampilkan 0 sampai 0 dari 0 data",
-                "infoFiltered": "(disaring dari _MAX_ total data)",
+                "infoFiltered": "(difilter dari _MAX_ total data)",
                 "lengthMenu": "Tampilkan _MENU_ data per halaman",
-                "loadingRecords": "Memuat...",
-                "processing": "Memproses...",
                 "search": "Cari:",
                 "zeroRecords": "Tidak ditemukan data yang sesuai",
                 "paginate": {
@@ -729,7 +729,6 @@ $role = $session->get('role');
             formData.append('tanggal', $('#tanggal').val());
             formData.append('peringkat', $('#peringkat').val());
             formData.append('status_validasi', $('#status_validasi').val() || '0'); // Default to 0 if not set
-            formData.append('status_lomba', $('#status_lomba').val());
             
             $.ajax({
                 url: $(this).attr('action'),

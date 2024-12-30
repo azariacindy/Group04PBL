@@ -65,6 +65,23 @@ class PrestasiModel extends Model
         $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
         return $row ? $row['nim'] : null;
     }
+    
+    public function countValidatedPrestasi() {
+        try {
+            $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE status_validasi > 0";
+            $stmt = sqlsrv_query($this->db, $sql);
+            
+            if ($stmt === false) {
+                throw new Exception('Error executing query: ' . print_r(sqlsrv_errors(), true));
+            }
+            
+            $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+            return $row['total'];
+            
+        } catch (Exception $e) {
+            return 0;
+        }
+    }
 
     public function getNimFromUsername($username) {
         if (empty($username)) {
@@ -145,7 +162,6 @@ class PrestasiModel extends Model
 
             // Set default values if not provided
             $data['status_validasi'] = $data['status_validasi'] ?? '-1'; // Default: belum divalidasi
-            $data['status_lomba'] = $data['status_lomba'] ?? 'in progress'; // Default: sedang berlangsung
             $data['alasan'] = $data['alasan'] ?? null;
 
             // Validasi status_validasi
@@ -153,13 +169,8 @@ class PrestasiModel extends Model
                 throw new Exception('Status validasi tidak valid. Harus salah satu dari: -1, 0, 1, 2, 3');
             }
 
-            // Validasi status_lomba
-            if (!in_array($data['status_lomba'], ['in progress', 'completed'])) {
-                throw new Exception('Status lomba tidak valid. Harus salah satu dari: in progress, completed');
-            }
-
-            $sql = "INSERT INTO {$this->table} (nim, nip, id_lomba, tanggal, detail_lomba, berkas, peringkat, status_lomba, status_validasi, alasan) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO {$this->table} (nim, nip, id_lomba, tanggal, detail_lomba, berkas, peringkat, status_validasi, id_user) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $params = [
                 intval($data['nim']),
                 intval($data['nip']),
@@ -168,9 +179,8 @@ class PrestasiModel extends Model
                 $data['detail_lomba'],
                 $data['berkas'],
                 $data['peringkat'],
-                $data['status_lomba'],
                 $data['status_validasi'],
-                $data['alasan']
+                $data['id_user']
             ];
 
             $stmt = sqlsrv_query($this->db, $sql, $params);
@@ -325,20 +335,12 @@ class PrestasiModel extends Model
             } 
             // Jika ini adalah update data prestasi biasa
             else {
-                $allowedFields = ['nip', 'id_lomba', 'tanggal', 'detail_lomba', 'berkas', 'peringkat', 'status_lomba'];
+                $allowedFields = ['nip', 'id_lomba', 'tanggal', 'detail_lomba', 'berkas', 'peringkat'];
                 foreach ($allowedFields as $field) {
                     if (isset($data[$field])) {
                         // Convert numeric fields to int
                         if (in_array($field, ['nip', 'id_lomba'])) {
                             $updateData[$field] = intval($data[$field]);
-                        }
-                        // Validate status_lomba
-                        else if ($field === 'status_lomba') {
-                            $status_lomba = strval($data[$field]);
-                            if (!in_array($status_lomba, ['in progress', 'completed'])) {
-                                throw new Exception('Status lomba tidak valid. Harus salah satu dari: in progress, completed');
-                            }
-                            $updateData[$field] = $status_lomba;
                         }
                         // Convert string fields
                         else if ($field === 'peringkat') {
@@ -483,11 +485,11 @@ class PrestasiModel extends Model
     public function insertDataNew($data)
     {
         try {
-            $sql = "INSERT INTO {$this->table} (nim, id_dosen, id_lomba, nama_lomba, juara, tingkat, tahun, status_validasi, alasan) 
+            $sql = "INSERT INTO {$this->table} (nim, nip, id_lomba, nama_lomba, juara, tingkat, tahun, status_validasi, alasan) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $params = [
                 $data['nim'],
-                $data['id_dosen'],
+                $data['nip'],
                 $data['id_lomba'],
                 $data['nama_lomba'],
                 $data['juara'],
@@ -518,7 +520,7 @@ class PrestasiModel extends Model
             $query = "SELECT p.*, m.nama_mhs, d.nama_dosen, l.nama_lomba as kategori_lomba, t.nama_tingkat, p.alasan
                     FROM {$this->table} p
                     LEFT JOIN [mahasiswa] m ON p.nim = m.nim
-                    LEFT JOIN [dosen] d ON p.id_dosen = d.nip
+                    LEFT JOIN [dosen] d ON p.nip = d.nip
                     LEFT JOIN [lomba] l ON p.id_lomba = l.id_lomba
                     LEFT JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat 
                     ORDER BY p.id_prestasi DESC";
@@ -544,7 +546,7 @@ class PrestasiModel extends Model
             $query = "SELECT p.*, m.nama_mhs, d.nama_dosen, l.nama_lomba as kategori_lomba, t.nama_tingkat, p.alasan
                     FROM {$this->table} p
                     LEFT JOIN [mahasiswa] m ON p.nim = m.nim
-                    LEFT JOIN [dosen] d ON p.id_dosen = d.nip
+                    LEFT JOIN [dosen] d ON p.nip = d.nip
                     LEFT JOIN [lomba] l ON p.id_lomba = l.id_lomba
                     LEFT JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat 
                     WHERE p.id_prestasi = ?";
@@ -805,8 +807,8 @@ class PrestasiModel extends Model
             $id_user = $_SESSION['id_user'];
 
             // Insert prestasi data
-            $sql = "INSERT INTO {$this->table} (nim, nip, id_lomba, tanggal, detail_lomba, berkas, peringkat, status_lomba, status_validasi) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO {$this->table} (nim, nip, id_lomba, tanggal, detail_lomba, berkas, peringkat, status_validasi) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             
             $params = [
                 $data['nim'],
@@ -816,7 +818,6 @@ class PrestasiModel extends Model
                 isset($data['detail_lomba']) ? $data['detail_lomba'] : null,
                 $data['berkas'],
                 $data['peringkat'],
-                'in progress', // Using 'in progress' as it's likely one of the allowed values
                 isset($data['status_validasi']) ? $data['status_validasi'] : '0'
             ];
             
@@ -856,5 +857,111 @@ class PrestasiModel extends Model
             throw $e;
         }
     }
+    public function countPrestasiByUser($id_user) {
+        try {
+            // Get NIM first
+            $nim = $this->getNimByUserId($id_user);
+            
+            // Count prestasi for this NIM
+            $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE nim = ?";
+            $params = array($nim);
+            $stmt = sqlsrv_query($this->db, $sql, $params);
+            
+            if ($stmt === false) {
+                throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+            }
+            
+            $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+            return $row['total'];
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return 0;
+        }
+    }
+
+    public function getNipFromUsername($username) {
+        try {
+            $sql = "SELECT d.nip FROM [dosen] d 
+                    JOIN [user] u ON d.id_user = u.id_user 
+                    WHERE u.username = ?";
+            $params = array($username);
+            $stmt = sqlsrv_query($this->db, $sql, $params);
+            
+            if ($stmt === false) {
+                throw new Exception("Error getting NIP: " . print_r(sqlsrv_errors(), true));
+            }
+            
+            $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+            if (!$row) {
+                throw new Exception("NIP tidak ditemukan untuk user: " . $username);
+            }
+            
+            return $row['nip'];
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+    
+    public function getDataByNipUser($nip) {
+        try {
+            $nip = trim($nip);
+            $sql = "SELECT 
+                    p.*,
+                    m.nama_mhs,
+                    d.nama_dosen,
+                    l.nama_lomba,
+                    l.detail_lomba as detail_kategori_lomba,
+                    t.nama_tingkat,
+                    t.id_tingkat
+                    FROM [prestasi] p
+                    INNER JOIN [mahasiswa] m ON p.nim = m.nim
+                    INNER JOIN [dosen] d ON p.nip = d.nip
+                    INNER JOIN [lomba] l ON p.id_lomba = l.id_lomba
+                    INNER JOIN [tingkat] t ON l.id_tingkat = t.id_tingkat
+                    WHERE p.nip = ?
+                    ORDER BY p.id_prestasi DESC";
+    
+            $params = [$nip];
+            $stmt = sqlsrv_query($this->db, $sql, $params);
+            
+            if ($stmt === false) {
+                throw new Exception('Gagal mengambil data: ' . print_r(sqlsrv_errors(), true));
+            }
+            
+            return $stmt;
+        } catch (Exception $e) {
+            throw new Exception('Gagal mengambil data: ' . $e->getMessage());
+        }
+    }
+    
+    public function getMonthlyStats($year) {
+        try {
+            $sql = "SELECT 
+                        MONTH(tanggal) as month,
+                        COUNT(*) as count
+                    FROM prestasi
+                    WHERE YEAR(tanggal) = ?
+                    GROUP BY MONTH(tanggal)
+                    ORDER BY MONTH(tanggal)";
+            
+            $params = array($year);
+            $stmt = sqlsrv_query($this->db, $sql, $params);
+            
+            if ($stmt === false) {
+                throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+            }
+            
+            $results = array();
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $results[] = $row;
+            }
+            
+            return $results;
+        } catch (Exception $e) {
+            throw new Exception("Failed to get monthly statistics: " . $e->getMessage());
+        }
+    }
+
+    // ... rest of the code remains the same ...
 }
 ?>

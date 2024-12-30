@@ -12,8 +12,7 @@ if ($session->get('is_login') !== true) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AdminLTE 3 | Blank Page</title>
-
+  <title>Prestasi Polinema</title>
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome -->
@@ -26,8 +25,17 @@ if ($session->get('is_login') !== true) {
   <link rel="stylesheet" href="adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
   <!-- jQuery -->
   <script src="adminlte/plugins/jquery/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Bootstrap CSS -->
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+   <link rel="stylesheet" href="assets/css/dashboard-style.css">
+   <link rel="stylesheet" href="assets/css/competition-style.css">
+   <link rel="stylesheet" href="assets/css/user-management.css">
+   
 </head>
 
 <body class="hold-transition sidebar-mini">
@@ -42,8 +50,8 @@ if ($session->get('is_login') !== true) {
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
       <a href="index.php" class="brand-link">
-        <img src="adminlte/dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-        <span class="brand-text font-weight-light">AdminLTE 3</span>
+        <img src="assets/image/JTI.png" alt="JTI Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+        <span class="brand-text font-weight-light">JTI Presma</span>
       </a>
 
       <!-- Sidebar -->
@@ -66,8 +74,14 @@ if ($session->get('is_login') !== true) {
         case 'input_prestasi':
           include('pages/input_prestasi.php');
           break;
-        case 'user':
-          include('pages/user.php');
+        case 'competitions':
+          include('pages/competitions.php');
+          break;
+        case 'pengajuan_dosen':
+          include('pages/pengajuan_dosen.php');
+          break;
+        case 'manage_users':
+          include('pages/manage_users.php');
           break;
     
       }

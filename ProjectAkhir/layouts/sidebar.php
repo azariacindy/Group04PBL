@@ -6,33 +6,17 @@ if (isset($_SESSION['username'])) {
     $username = ''; // Default value if not logged in
 }
 ?>
-
 <div class="sidebar"> 
     <!-- Sidebar user (optional) --> 
     <div class="user-panel mt-3 pb-3 mb-3 d-flex"> 
-        <div class="image"> 
-            <img src="adminlte/dist/img/user2-160x160.jpg" class="img-circle elevation-2" 
-alt="User Image"> 
-        </div> 
         <div class="info"> 
             <a href="/ProjectAkhir/admin/pages/profile.php" class="nav-link">Satriya Viar</a> 
-        </div> 
-    </div> 
- 
-    <!-- SidebarSearch Form --> 
-    <div class="form-inline"> 
-        <div class="input-group" data-widget="sidebar-search"> 
-            <input class="form-control form-control-sidebar" type="search" 
-placeholder="Search" aria-label="Search"> 
-            <div class="input-group-append"><button class="btn btn-sidebar"><i class="fas 
-fa-search fa-fw"></i></button></div> 
         </div> 
     </div> 
 
     <?php
     if ($_SESSION['role'] == 'admin') {
     ?>
-
     <!-- Sidebar Menu --> 
     <nav class="mt-2"> 
     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" 
@@ -54,7 +38,13 @@ data-accordion="false">
         <li class="nav-item border-bottom">
             <a href="index.php?page=input_prestasi" class="nav-link">
                 <i class="nav-icon fas fa-medal"></i>
-                <p>Input Prestasi</p>
+                <p>Validasi Prestasi</p>
+            </a>
+        </li>
+        <li class="nav-item border-bottom">
+            <a href="index.php?page=manage_users" class="nav-link">
+                <i class="nav-icon fas fa-users"></i>
+                <p>User Management</p>
             </a>
         </li>
         <li class="nav-item"> 
@@ -93,11 +83,23 @@ data-accordion="false">
                 <i class="nav-icon fas fa-flag"></i> 
                 <p>Pengajuan Lomba</p> 
             </a> 
-        </li> 
+        </li>
+        <li class="nav-item border-item"> 
+            <a href="index.php?page=competitions" class="nav-link"> 
+                <i class="nav-icon fas fa-trophy"></i> 
+                <p>Cari Lomba</p> 
+            </a> 
+        </li>
+        <li class="nav-item border-item">
+            <a href="index.php?page=pengajuan_dosen" class="nav-link">
+                <i class="nav-icon fas fa-medal"></i>
+                <p>Pengajuan Dosen</p>
+            </a>
+        </li>
         <li class="nav-item border-bottom">
             <a href="index.php?page=input_prestasi" class="nav-link">
                 <i class="nav-icon fas fa-medal"></i>
-                <p>Input Prestasi</p>
+                <p>Unggah Prestasi</p>
             </a>
         </li>
         <li class="nav-item"> 
@@ -133,6 +135,12 @@ data-accordion="false">
                 <p>Pengajuan Lomba</p> 
             </a> 
         </li> 
+        <li class="nav-item border-item">
+            <a href="index.php?page=pengajuan_dosen" class="nav-link">
+                <i class="nav-icon fas fa-medal"></i>
+                <p>Pengajuan Dosen Pembimbing</p>
+            </a>
+        </li>
         <li class="nav-item border-bottom">
             <a href="index.php?page=input_prestasi" class="nav-link">
                 <i class="nav-icon fas fa-medal"></i>

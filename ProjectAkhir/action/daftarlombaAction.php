@@ -62,12 +62,12 @@ if ($act == 'load') {
         // Menambahkan data lomba ke array hasil tanpa menampilkan id_user atau nama_user
         $result['data'][] = [
             $i, // Nomor urut
-            htmlspecialchars($row['nama_lomba']),
-            htmlspecialchars($row['id_tingkat']),
+            htmlspecialchars($row['nama_lomba'] ?? ''),
+            htmlspecialchars($row['id_tingkat'] ?? ''),
             // Format tanggal 
-            htmlspecialchars($row['tanggal'] instanceof DateTime ? $row['tanggal']->format('d M Y') : $row['tanggal']),
-            htmlspecialchars($row['detail_lomba']),
-            '<img src="' . htmlspecialchars($row['gambar']) . '" alt="Gambar Lomba" style="max-width: 100px; max-height: 100px;">',
+            htmlspecialchars($row['tanggal'] instanceof DateTime ? $row['tanggal']->format('d M Y') : ($row['tanggal'] ?? '')),
+            htmlspecialchars($row['detail_lomba'] ?? ''),
+            '<img src="' . htmlspecialchars($row['gambar'] ?? '') . '" alt="Gambar Lomba" style="max-width: 100px; max-height: 100px;">',
            // Show action buttons
            $action_buttons,
            // Show status buttons only for admin

@@ -1,5 +1,5 @@
 <?php
-include_once('Model.php');
+include_once(__DIR__ . '/Model.php');
 
 class GlobalModel extends Model
 {
@@ -9,9 +9,9 @@ class GlobalModel extends Model
 
     public function __construct()
     {
-        include_once(__DIR__ . '/../lib/Connection.php');
-        if (!$db) {
-            die('Koneksi database gagal: ' . print_r(sqlsrv_errors(), true));
+        require(__DIR__ . '/../lib/Connection.php');
+        if (!isset($db) || $db === false) {
+            throw new Exception('Database connection failed');
         }
         $this->db = $db;
         $this->driver = $use_driver;

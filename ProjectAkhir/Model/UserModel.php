@@ -1,5 +1,7 @@
 <?php
-include('Model.php');
+include_once(__DIR__ . '/Model.php');
+include_once(__DIR__ . '/../lib/Session.php');
+
 $session = new Session();
 class UserModel extends Model
 {
@@ -7,11 +9,12 @@ class UserModel extends Model
     protected $table = '[user]';
     protected $driver;
 
+
     public function __construct()
     {
-        include('../lib/Connection.php');
-        if (!$db) {
-            die('Koneksi database gagal: ' . print_r(sqlsrv_errors(), true));
+        require(__DIR__ . '/../lib/Connection.php');
+        if (!isset($db) || $db === false) {
+            throw new Exception('Database connection failed');
         }
         $this->db = $db;
         $this->driver = $use_driver;
@@ -38,6 +41,7 @@ class UserModel extends Model
             return $data;
     }
 
+
     public function getDataById($id)
     {
             // query untuk mengambil data berdasarkan id
@@ -46,6 +50,7 @@ class UserModel extends Model
             // ambil hasil query
             return sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
     }
+
 
     public function updateData($id, $data)
     {
@@ -65,6 +70,7 @@ class UserModel extends Model
         
     }
 
+
     public function getSingleDataByKeyword($column, $keyword)
     {
         
@@ -76,6 +82,7 @@ class UserModel extends Model
             $result = sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
             return $result ?: []; // Mengembalikan array kosong jika tidak ada hasil
     }
+
 
     
 }
